@@ -12,6 +12,21 @@ export const ProductVisual: React.FC<ProductVisualProps> = ({
   className = '',
   isDetailed = false
 }) => {
+  // If product has a custom uploaded image, render it with high-fidelity framing
+  if (product.imageUrl) {
+    return (
+      <div className={`relative w-full h-full overflow-hidden flex items-center justify-center bg-[#FAF5EE] ${className}`}>
+        <img
+          src={product.imageUrl}
+          alt={product.name}
+          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+          loading="lazy"
+        />
+        <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
+      </div>
+    );
+  }
+
   // Bespoke artisanal visual rendering based on product category & theme
   const renderVisualArtwork = () => {
     if (product.category === 'mastic') {

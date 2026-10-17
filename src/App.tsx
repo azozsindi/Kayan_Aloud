@@ -12,13 +12,14 @@ import { Footer } from './components/Footer';
 import { AdminDashboard } from './components/AdminDashboard';
 import {
   PRODUCTS as INITIAL_PRODUCTS,
+  INITIAL_TIKTOK_VIDEOS,
   WHATSAPP_NUMBER,
   WHATSAPP_DIRECT_LINK,
   TIKTOK_HANDLE,
   TIKTOK_URL,
   LOCATION_CITY
 } from './data/products';
-import { Product, ProductVariant, CartItem, StoreSettings } from './types';
+import { Product, ProductVariant, CartItem, StoreSettings, TikTokVideoItem } from './types';
 import { Sparkles, MessageCircle, Check, Search, ShieldAlert } from 'lucide-react';
 
 const DEFAULT_SETTINGS: StoreSettings = {
@@ -64,6 +65,16 @@ export default function App() {
     }
   });
 
+  // TikTok Videos with LocalStorage persistence
+  const [tiktokVideos, setTiktokVideos] = useState<TikTokVideoItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('kayan_tiktok_videos');
+      return saved ? JSON.parse(saved) : INITIAL_TIKTOK_VIDEOS;
+    } catch {
+      return INITIAL_TIKTOK_VIDEOS;
+    }
+  });
+
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -97,6 +108,15 @@ export default function App() {
       // LocalStorage fallback
     }
   }, [cart]);
+
+  // Sync TikTok videos to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('kayan_tiktok_videos', JSON.stringify(tiktokVideos));
+    } catch {
+      // LocalStorage fallback
+    }
+  }, [tiktokVideos]);
 
   // Check URL (hash, pathname, query) and keyboard typing for "OUD"
   useEffect(() => {
@@ -193,9 +213,11 @@ export default function App() {
   const handleResetDefaults = () => {
     setProducts(INITIAL_PRODUCTS);
     setSettings(DEFAULT_SETTINGS);
+    setTiktokVideos(INITIAL_TIKTOK_VIDEOS);
     try {
       localStorage.removeItem('kayan_products');
       localStorage.removeItem('kayan_settings');
+      localStorage.removeItem('kayan_tiktok_videos');
     } catch {
       // ignore
     }
@@ -424,6 +446,7 @@ export default function App() {
 
         {/* TikTok Community & Videos Section */}
         <TikTokBanner
+          videos={tiktokVideos}
           tiktokHandle={settings.tiktokHandle}
           tiktokUrl={settings.tiktokUrl}
           whatsappLink={settings.whatsappDirectLink}
@@ -482,6 +505,8 @@ export default function App() {
         settings={settings}
         onUpdateSettings={setSettings}
         onResetDefaults={handleResetDefaults}
+        tiktokVideos={tiktokVideos}
+        onUpdateTikTokVideos={setTiktokVideos}
       />
 
       {/* Toast Notification */}

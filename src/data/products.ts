@@ -1,4 +1,4 @@
-import { Product } from '../types';
+import { Product, TikTokVideoItem } from '../types';
 
 export const WHATSAPP_NUMBER = '966503676367';
 export const WHATSAPP_DIRECT_LINK = 'https://iwtsp.com/966503676367';
@@ -202,3 +202,37 @@ export const FAQS = [
     answer: 'يمكنك اختيار المنتجات وإضافتها للسلة هنا ثم الضغط على "إرسال الطلب عبر الواتساب"، وسيتم تحويل تفاصيل طلبك وعنوانك مباشرة لمحادثة الواتساب معنا لنقوم بتأكيد الطلب وتجهيزه فوراً، أو مراسلتنا مباشرة على الخاص في تيك توك.'
   }
 ];
+
+export const INITIAL_TIKTOK_VIDEOS: TikTokVideoItem[] = [
+  {
+    id: 'vid-1',
+    title: 'كواليس سقاية ونقع المستكة البلورية بمسك الختام الملكي 🤍',
+    category: 'المستكة البلورية',
+    badge: 'كواليس الورشة',
+    url: 'https://www.tiktok.com/@kayan_alood',
+    videoSourceUrl: 'https://assets.mixkit.co/videos/preview/mixkit-smoke-from-an-incense-stick-41484-large.mp4',
+    views: '48.2K',
+    likes: '4.8K'
+  },
+  {
+    id: 'vid-2',
+    title: 'طريقة تلبيس العود المروكي الفاخر ببودرة المسك الملكي حبة بحبة ✨',
+    category: 'العود الملبس بالمسك',
+    badge: 'الأكثر تداولاً',
+    url: 'https://www.tiktok.com/@kayan_alood',
+    videoSourceUrl: 'https://assets.mixkit.co/videos/preview/mixkit-burning-incense-coals-in-a-censer-43189-large.mp4',
+    views: '76.4K',
+    likes: '8.2K'
+  },
+  {
+    id: 'vid-3',
+    title: 'تجهيز بوكسات الإهداء الملكية مع كروت الإهداء لأهل جدة الحبايب 🎁',
+    category: 'بوكسات الإهداء',
+    badge: 'تغليف الهدايا',
+    url: 'https://www.tiktok.com/@kayan_alood',
+    videoSourceUrl: 'https://assets.mixkit.co/videos/preview/mixkit-drops-of-essential-oil-falling-into-a-glass-jar-41473-large.mp4',
+    views: '52.1K',
+    likes: '5.6K'
+  }
+];
+

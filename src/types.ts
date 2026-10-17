@@ -27,6 +27,8 @@ export interface Product {
   variants: ProductVariant[];
   colorTheme: string;
   isPopular?: boolean;
+  imageUrl?: string;
+  inStock?: boolean;
 }
 
 export interface CartItem {
@@ -56,4 +58,18 @@ export interface StoreSettings {
   announcementText: string;
   customLogoUrl: string | null;
 }
+
+export interface TikTokVideoItem {
+  id: string;
+  title: string;
+  category: string;
+  badge: string;
+  url: string;
+  videoId?: string;
+  videoSourceUrl?: string;
+  customThumbnailUrl?: string;
+  views?: string;
+  likes?: string;
+}
+
 

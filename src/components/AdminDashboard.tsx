@@ -20,9 +20,15 @@ import {
   MapPin,
   Truck,
   AlertTriangle,
-  Copy
+  Copy,
+  Layers,
+  Check,
+  Percent,
+  Play,
+  Video,
+  ExternalLink
 } from 'lucide-react';
-import { Product, ProductVariant, StoreSettings } from '../types';
+import { Product, ProductVariant, StoreSettings, TikTokVideoItem } from '../types';
 import { Logo } from './Logo';
 
 interface AdminDashboardProps {
@@ -33,6 +39,8 @@ interface AdminDashboardProps {
   settings: StoreSettings;
   onUpdateSettings: (newSettings: StoreSettings) => void;
   onResetDefaults: () => void;
+  tiktokVideos: TikTokVideoItem[];
+  onUpdateTikTokVideos: (newVideos: TikTokVideoItem[]) => void;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
@@ -42,7 +50,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onUpdateProducts,
   settings,
   onUpdateSettings,
-  onResetDefaults
+  onResetDefaults,
+  tiktokVideos,
+  onUpdateTikTokVideos
 }) => {
   // Authentication PIN state (Strictly A0897 with no public hints)
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -53,16 +63,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   });
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'products' | 'logo' | 'settings' | 'backup'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'tiktok' | 'logo' | 'settings'>('products');
 
   // Product Edit / Create state
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
 
+  // TikTok Video Edit state
+  const [editingVideo, setEditingVideo] = useState<TikTokVideoItem | null>(null);
+  const [isCreatingNewVideo, setIsCreatingNewVideo] = useState(false);
+
   // Success Notice Toast
   const [notice, setNotice] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const productImageInputRef = useRef<HTMLInputElement>(null);
+  const videoThumbnailInputRef = useRef<HTMLInputElement>(null);
 
   const showNotice = (msg: string) => {
     setNotice(msg);
@@ -130,7 +146,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       category: 'mastic',
       categoryLabel: 'مستكة بلورية مسقاة',
       badge: 'جديد',
-      price: 100,
+      price: 120,
+      originalPrice: 150,
       description: '',
       craftingDetails: 'صُنعت يدوياً بكل حب في ورشتنا بجدة.',
       usageInstructions: 'توضع على جمر هادئ لفوحان ممتد وثابت.',
@@ -140,20 +157,141 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         base: ''
       },
       variants: [
-        { id: `var-1-${Date.now()}`, name: 'علبة فاخرة (100 غرام)', weight: '100 غرام', price: 100 }
+        { id: `var-1-${Date.now()}`, name: 'علبة فاخرة (100 غرام)', weight: '100 غرام', price: 120 }
       ],
-      colorTheme: 'from-[#FAF5EE] to-[#EFE4D6]'
+      colorTheme: 'from-[#FAF5EE] to-[#EFE4D6]',
+      imageUrl: '',
+      inStock: true
     };
     setEditingProduct(newProd);
     setIsCreatingNew(true);
+  };
+
+  // Product Image Upload
+  const handleProductImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && editingProduct) {
+      if (file.size > 8 * 1024 * 1024) {
+        alert('حجم الصورة كبير جداً، يرجى اختيار صورة أقل من 8 ميجابايت.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64 = event.target?.result as string;
+        setEditingProduct({
+          ...editingProduct,
+          imageUrl: base64
+        });
+        showNotice('تم رفع صورة الصنف بنجاح!');
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Variant Actions
+  const handleAddVariant = () => {
+    if (!editingProduct) return;
+    const newVar: ProductVariant = {
+      id: `var-${Date.now()}`,
+      name: 'حجم إضافي (50 غرام)',
+      weight: '50 غرام',
+      price: Math.max(10, editingProduct.price - 40)
+    };
+    setEditingProduct({
+      ...editingProduct,
+      variants: [...editingProduct.variants, newVar]
+    });
+  };
+
+  const handleUpdateVariant = (index: number, field: keyof ProductVariant, value: any) => {
+    if (!editingProduct) return;
+    const updated = editingProduct.variants.map((v, i) =>
+      i === index ? { ...v, [field]: value } : v
+    );
+    setEditingProduct({
+      ...editingProduct,
+      variants: updated
+    });
+  };
+
+  const handleRemoveVariant = (index: number) => {
+    if (!editingProduct) return;
+    if (editingProduct.variants.length <= 1) {
+      alert('يجب أن يحتوي الصنف على حجم واحد على الأقل.');
+      return;
+    }
+    setEditingProduct({
+      ...editingProduct,
+      variants: editingProduct.variants.filter((_, i) => i !== index)
+    });
+  };
+
+  // TikTok Video Actions
+  const handleSaveVideo = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingVideo) return;
+
+    if (isCreatingNewVideo) {
+      onUpdateTikTokVideos([editingVideo, ...tiktokVideos]);
+      showNotice(`تمت إضافة فيديو تيك توك بنجاح`);
+    } else {
+      onUpdateTikTokVideos(
+        tiktokVideos.map((v) => (v.id === editingVideo.id ? editingVideo : v))
+      );
+      showNotice(`تم تحديث فيديو تيك توك بنجاح`);
+    }
+
+    setEditingVideo(null);
+    setIsCreatingNewVideo(false);
+  };
+
+  const handleDeleteVideo = (videoId: string, title: string) => {
+    if (window.confirm(`هل أنت متأكد من حذف مقطع "${title}"؟`)) {
+      onUpdateTikTokVideos(tiktokVideos.filter((v) => v.id !== videoId));
+      showNotice('تم حذف المقطع بنجاح');
+    }
+  };
+
+  const handleCreateNewVideo = () => {
+    const newVid: TikTokVideoItem = {
+      id: `vid-${Date.now()}`,
+      title: '',
+      category: 'كواليس التجهيز',
+      badge: 'جديد',
+      url: settings.tiktokUrl || 'https://www.tiktok.com/@kayan_alood',
+      views: '10K',
+      likes: '1.2K'
+    };
+    setEditingVideo(newVid);
+    setIsCreatingNewVideo(true);
+  };
+
+  const handleVideoThumbnailUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && editingVideo) {
+      if (file.size > 8 * 1024 * 1024) {
+        alert('حجم الصورة كبير جداً، يرجى اختيار صورة أقل من 8 ميجابايت.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64 = event.target?.result as string;
+        setEditingVideo({
+          ...editingVideo,
+          customThumbnailUrl: base64
+        });
+        showNotice('تم رفع غلاف الفيديو بنجاح!');
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   // Logo Upload Actions
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert('حجم الصورة كبير جداً، يرجى اختيار صورة أقل من 5 ميجابايت.');
+      if (file.size > 6 * 1024 * 1024) {
+        alert('حجم الصورة كبير جداً، يرجى اختيار صورة أقل من 6 ميجابايت.');
         return;
       }
       const reader = new FileReader();
@@ -174,8 +312,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 text-right">
-      <div className="relative w-full max-w-5xl bg-[#FAF7F2] rounded-2xl border border-[#E8DFD3] shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-xs flex items-center justify-center p-2 sm:p-6 text-right">
+      <div className="relative w-full max-w-5xl bg-[#FAF7F2] rounded-2xl border border-[#E8DFD3] shadow-2xl overflow-hidden flex flex-col max-h-[94vh]">
         
         {/* Notice Toast */}
         {notice && (
@@ -195,11 +333,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <h2 className="text-base sm:text-lg font-bold flex items-center gap-2">
                 <span>لوحة تحكم كيان العود</span>
                 <span className="text-[10px] bg-[#E5C378] text-[#581420] px-2 py-0.5 rounded font-extrabold">
-                  الإدارة الخاصة
+                  إدارة المتجر والفيديوهات
                 </span>
               </h2>
               <p className="text-[11px] text-[#D8BFC4]">
-                تعديل الأصناف، الأسعار، الشعار، وإعدادات الواتساب وتيك توك
+                تعديل الأصناف، الصور، الأسعار، وفيديوهات تيك توك
               </p>
             </div>
           </div>
@@ -277,6 +415,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 onClick={() => {
                   setActiveTab('products');
                   setEditingProduct(null);
+                  setEditingVideo(null);
                 }}
                 className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${
                   activeTab === 'products'
@@ -290,8 +429,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
               <button
                 onClick={() => {
+                  setActiveTab('tiktok');
+                  setEditingProduct(null);
+                  setEditingVideo(null);
+                }}
+                className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${
+                  activeTab === 'tiktok'
+                    ? 'bg-[#581420] text-white shadow-xs'
+                    : 'text-[#554044] hover:bg-[#EAE0D3]'
+                }`}
+              >
+                <Play className="w-4 h-4 text-[#E5C378]" />
+                <span>فيديوهات تيك توك ({tiktokVideos.length})</span>
+              </button>
+
+              <button
+                onClick={() => {
                   setActiveTab('logo');
                   setEditingProduct(null);
+                  setEditingVideo(null);
                 }}
                 className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${
                   activeTab === 'logo'
@@ -307,6 +463,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 onClick={() => {
                   setActiveTab('settings');
                   setEditingProduct(null);
+                  setEditingVideo(null);
                 }}
                 className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${
                   activeTab === 'settings'
@@ -339,10 +496,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E8DFD3]">
                     <div>
                       <h3 className="text-lg font-bold text-[#350A11]">
-                        قائمة أصناف كيان العود
+                        قائمة أصناف ومنتجات كيان العود
                       </h3>
                       <p className="text-xs text-[#70555A]">
-                        يمكنك إضافة صنف جديد، تعديل الأسعار، تغيير الأحجام، أو الحذف
+                        تحكم كامل بالصور، الأسعار، الأحجام، الشرح، والنوتات العطرية
                       </p>
                     </div>
 
@@ -355,195 +512,402 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     </button>
                   </div>
 
-                  {/* Product Form Modal (if editing or creating) */}
+                  {/* Product Form Modal (Full Control for Editing or Creating) */}
                   {editingProduct && (
-                    <div className="bg-white rounded-xl border border-[#C59B27] p-5 shadow-lg space-y-4">
+                    <div className="bg-white rounded-xl border-2 border-[#581420] p-4 sm:p-6 shadow-xl space-y-6 animate-fade-in">
                       <div className="flex items-center justify-between border-b border-[#F0E8DE] pb-3">
-                        <h4 className="text-sm font-bold text-[#581420]">
-                          {isCreatingNew ? 'إضافة صنف جديد لكيان العود' : `تعديل صنف: ${editingProduct.name}`}
-                        </h4>
+                        <div className="flex items-center gap-2">
+                          <Package className="w-5 h-5 text-[#581420]" />
+                          <h4 className="text-sm sm:text-base font-bold text-[#581420]">
+                            {isCreatingNew ? 'إضافة صنف جديد' : `تعديل الصنف: ${editingProduct.name}`}
+                          </h4>
+                        </div>
                         <button
                           onClick={() => setEditingProduct(null)}
-                          className="p-1 text-[#70555A] hover:text-black"
+                          className="p-1 text-[#70555A] hover:text-black rounded"
                         >
-                          <X className="w-4 h-4" />
+                          <X className="w-5 h-5" />
                         </button>
                       </div>
 
-                      <form onSubmit={handleSaveProduct} className="space-y-4">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-xs font-bold text-[#554044] mb-1">
-                              اسم الصنف:
-                            </label>
-                            <input
-                              type="text"
-                              required
-                              placeholder="مثال: مستكة بلورية مسقاة بمسك الختام"
-                              value={editingProduct.name}
-                              onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
-                              className="w-full text-xs p-2.5 rounded-md border border-[#E8DFD3] bg-[#FAF7F2] focus:outline-none focus:border-[#581420]"
-                            />
+                      <form onSubmit={handleSaveProduct} className="space-y-6">
+                        
+                        {/* 1. PRODUCT IMAGE UPLOAD / URL SECTION */}
+                        <div className="bg-[#FAF7F2] p-4 rounded-xl border border-[#E8DFD3] space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-[#581420] flex items-center gap-1.5">
+                              <ImageIcon className="w-4 h-4 text-[#C59B27]" />
+                              <span>صورة الصنف (رفع من الجوال/الكمبيوتر أو رابط مباشر):</span>
+                            </span>
+                            {editingProduct.imageUrl && (
+                              <button
+                                type="button"
+                                onClick={() => setEditingProduct({ ...editingProduct, imageUrl: '' })}
+                                className="text-[11px] text-red-600 hover:underline"
+                              >
+                                إزالة الصورة واستعادة الرسم الافتراضي
+                              </button>
+                            )}
                           </div>
 
-                          <div>
-                            <label className="block text-xs font-bold text-[#554044] mb-1">
-                              الوصف القصير (السطر التعريفي):
-                            </label>
-                            <input
-                              type="text"
-                              required
-                              placeholder="مثال: بلورات نقية مسقاة بزيوت عطرية فاخرة"
-                              value={editingProduct.subtitle}
-                              onChange={(e) => setEditingProduct({ ...editingProduct, subtitle: e.target.value })}
-                              className="w-full text-xs p-2.5 rounded-md border border-[#E8DFD3] bg-[#FAF7F2] focus:outline-none focus:border-[#581420]"
-                            />
+                          <div className="flex flex-col sm:flex-row gap-4 items-center">
+                            {/* Image Preview Box */}
+                            <div className="w-28 h-28 rounded-xl border-2 border-dashed border-[#C59B27] bg-white overflow-hidden flex items-center justify-center shrink-0 relative group">
+                              {editingProduct.imageUrl ? (
+                                <img
+                                  src={editingProduct.imageUrl}
+                                  alt="معاينة الصنف"
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="text-center p-2 text-[#8A6A18]">
+                                  <ImageIcon className="w-8 h-8 mx-auto opacity-40 mb-1" />
+                                  <span className="text-[9px] block">رسم افتراضي مدمج</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Upload Controls */}
+                            <div className="flex-1 w-full space-y-2">
+                              <input
+                                ref={productImageInputRef}
+                                type="file"
+                                accept="image/*"
+                                onChange={handleProductImageUpload}
+                                className="hidden"
+                              />
+
+                              <button
+                                type="button"
+                                onClick={() => productImageInputRef.current?.click()}
+                                className="w-full py-2.5 px-3 text-xs font-bold text-white bg-[#581420] hover:bg-[#430D17] rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                              >
+                                <Upload className="w-4 h-4 text-[#E5C378]" />
+                                <span>رفع صورة الصنف من الجوال / الكمبيوتر</span>
+                              </button>
+
+                              <div className="text-center text-[10px] text-[#A88A91]">أو</div>
+
+                              <input
+                                type="url"
+                                placeholder="أو الصق رابط صورة مباشرة هنا (URL)..."
+                                value={editingProduct.imageUrl || ''}
+                                onChange={(e) => setEditingProduct({ ...editingProduct, imageUrl: e.target.value })}
+                                className="w-full text-xs p-2.5 rounded-lg border border-[#E8DFD3] bg-white focus:outline-none focus:border-[#581420] text-left dir-ltr"
+                              />
+                            </div>
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                          <div>
-                            <label className="block text-xs font-bold text-[#554044] mb-1">
-                              القسم:
-                            </label>
-                            <select
-                              value={editingProduct.category}
-                              onChange={(e) => {
-                                const cat = e.target.value as 'mastic' | 'oud' | 'gifts';
-                                const label =
-                                  cat === 'mastic'
-                                    ? 'مستكة بلورية مسقاة'
-                                    : cat === 'oud'
-                                    ? 'عود ملبس بالمسك'
-                                    : 'بوكسات وباقات إهداء';
-                                setEditingProduct({
-                                  ...editingProduct,
-                                  category: cat,
-                                  categoryLabel: label
-                                });
-                              }}
-                              className="w-full text-xs p-2.5 rounded-md border border-[#E8DFD3] bg-[#FAF7F2] focus:outline-none focus:border-[#581420]"
+                        {/* 2. BASIC INFO & PRICING */}
+                        <div className="space-y-4">
+                          <h5 className="text-xs font-bold text-[#350A11] border-b border-[#F0E8DE] pb-1.5">
+                            البيانات الأساسية والأسعار:
+                          </h5>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-xs font-bold text-[#554044] mb-1">
+                                اسم الصنف:
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                placeholder="مثال: مستكة بلورية مسقاة بمسك الختام الملكي"
+                                value={editingProduct.name}
+                                onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
+                                className="w-full text-xs p-2.5 rounded-md border border-[#E8DFD3] bg-[#FAF7F2] focus:outline-none focus:border-[#581420]"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-bold text-[#554044] mb-1">
+                                السطر التعريفي (وصف قصير):
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                placeholder="مثال: بلورات نقية مسقاة بزيوت عطرية فاخرة تدوم طويلاً"
+                                value={editingProduct.subtitle}
+                                onChange={(e) => setEditingProduct({ ...editingProduct, subtitle: e.target.value })}
+                                className="w-full text-xs p-2.5 rounded-md border border-[#E8DFD3] bg-[#FAF7F2] focus:outline-none focus:border-[#581420]"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                            <div>
+                              <label className="block text-xs font-bold text-[#554044] mb-1">
+                                القسم:
+                              </label>
+                              <select
+                                value={editingProduct.category}
+                                onChange={(e) => {
+                                  const cat = e.target.value as 'mastic' | 'oud' | 'gifts';
+                                  const label =
+                                    cat === 'mastic'
+                                      ? 'مستكة بلورية مسقاة'
+                                      : cat === 'oud'
+                                      ? 'عود ملبس بالمسك'
+                                      : 'بوكسات وباقات إهداء';
+                                  setEditingProduct({
+                                    ...editingProduct,
+                                    category: cat,
+                                    categoryLabel: label
+                                  });
+                                }}
+                                className="w-full text-xs p-2.5 rounded-md border border-[#E8DFD3] bg-[#FAF7F2] focus:outline-none focus:border-[#581420]"
+                              >
+                                <option value="mastic">مستكة بلورية مسقاة</option>
+                                <option value="oud">عود ملبس بالمسك</option>
+                                <option value="gifts">بوكسات وباقات إهداء</option>
+                              </select>
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-bold text-[#554044] mb-1">
+                                السعر الحالي (ر.س):
+                              </label>
+                              <input
+                                type="number"
+                                required
+                                min={1}
+                                value={editingProduct.price}
+                                onChange={(e) => {
+                                  const p = Number(e.target.value);
+                                  const updatedVariants = editingProduct.variants.map((v, i) =>
+                                    i === 0 ? { ...v, price: p } : v
+                                  );
+                                  setEditingProduct({ ...editingProduct, price: p, variants: updatedVariants });
+                                }}
+                                className="w-full text-xs p-2.5 rounded-md border border-[#E8DFD3] bg-[#FAF7F2] focus:outline-none focus:border-[#581420] font-bold text-[#581420]"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-bold text-[#554044] mb-1">
+                                السعر قبل الخصم (اختياري):
+                              </label>
+                              <input
+                                type="number"
+                                min={0}
+                                placeholder="مثال: 150"
+                                value={editingProduct.originalPrice || ''}
+                                onChange={(e) =>
+                                  setEditingProduct({
+                                    ...editingProduct,
+                                    originalPrice: e.target.value ? Number(e.target.value) : undefined
+                                  })
+                                }
+                                className="w-full text-xs p-2.5 rounded-md border border-[#E8DFD3] bg-[#FAF7F2] focus:outline-none focus:border-[#581420]"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-bold text-[#554044] mb-1">
+                                شارة العرض:
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="مثال: الأكثر طلباً / جديد"
+                                value={editingProduct.badge || ''}
+                                onChange={(e) => setEditingProduct({ ...editingProduct, badge: e.target.value })}
+                                className="w-full text-xs p-2.5 rounded-md border border-[#E8DFD3] bg-[#FAF7F2] focus:outline-none focus:border-[#581420]"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 3. DYNAMIC SIZES & VARIANTS MANAGER */}
+                        <div className="bg-[#FAF5EE] p-4 rounded-xl border border-[#E8DFD3] space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-[#581420] flex items-center gap-1.5">
+                              <Layers className="w-4 h-4 text-[#C59B27]" />
+                              <span>الأحجام والأوزان والأسعار المتاحة للزبون:</span>
+                            </span>
+                            <button
+                              type="button"
+                              onClick={handleAddVariant}
+                              className="flex items-center gap-1 text-[11px] font-bold text-[#581420] bg-white px-2.5 py-1 rounded border border-[#E8DFD3] hover:bg-[#581420] hover:text-white transition-colors"
                             >
-                              <option value="mastic">مستكة بلورية مسقاة</option>
-                              <option value="oud">عود ملبس بالمسك</option>
-                              <option value="gifts">بوكسات وباقات إهداء</option>
-                            </select>
+                              <Plus className="w-3.5 h-3.5" />
+                              <span>إضافة حجم آخر</span>
+                            </button>
                           </div>
+
+                          <div className="space-y-2">
+                            {editingProduct.variants.map((v, idx) => (
+                              <div
+                                key={v.id || idx}
+                                className="grid grid-cols-1 sm:grid-cols-12 gap-2 bg-white p-2.5 rounded-lg border border-[#E8DFD3] items-center"
+                              >
+                                <div className="sm:col-span-5">
+                                  <label className="block text-[10px] text-[#70555A]">اسم الحجم/الوصف:</label>
+                                  <input
+                                    type="text"
+                                    value={v.name}
+                                    onChange={(e) => handleUpdateVariant(idx, 'name', e.target.value)}
+                                    placeholder="مثال: علبة فاخرة (100 غرام)"
+                                    className="w-full text-xs p-1.5 rounded border border-[#E8DFD3] bg-[#FAF7F2]"
+                                  />
+                                </div>
+
+                                <div className="sm:col-span-3">
+                                  <label className="block text-[10px] text-[#70555A]">الوزن:</label>
+                                  <input
+                                    type="text"
+                                    value={v.weight}
+                                    onChange={(e) => handleUpdateVariant(idx, 'weight', e.target.value)}
+                                    placeholder="100 غرام / أوقية"
+                                    className="w-full text-xs p-1.5 rounded border border-[#E8DFD3] bg-[#FAF7F2]"
+                                  />
+                                </div>
+
+                                <div className="sm:col-span-3">
+                                  <label className="block text-[10px] text-[#70555A]">السعر (ر.س):</label>
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    value={v.price}
+                                    onChange={(e) => handleUpdateVariant(idx, 'price', Number(e.target.value))}
+                                    className="w-full text-xs p-1.5 rounded border border-[#E8DFD3] bg-[#FAF7F2] font-bold text-[#581420]"
+                                  />
+                                </div>
+
+                                <div className="sm:col-span-1 flex justify-end pt-3 sm:pt-0">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveVariant(idx)}
+                                    className="p-1.5 text-red-600 hover:bg-red-50 rounded"
+                                    title="حذف هذا الحجم"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* 4. DESCRIPTION & NOTES */}
+                        <div className="space-y-4">
+                          <h5 className="text-xs font-bold text-[#350A11] border-b border-[#F0E8DE] pb-1.5">
+                            الشرح التفصيلي والهرم العطري:
+                          </h5>
 
                           <div>
                             <label className="block text-xs font-bold text-[#554044] mb-1">
-                              السعر الأساسي (ر.س):
+                              الشرح الكامل للصنف ومميزاته:
                             </label>
-                            <input
-                              type="number"
-                              required
-                              min={1}
-                              value={editingProduct.price}
-                              onChange={(e) => {
-                                const p = Number(e.target.value);
-                                const updatedVariants = editingProduct.variants.map((v, i) =>
-                                  i === 0 ? { ...v, price: p } : v
-                                );
-                                setEditingProduct({ ...editingProduct, price: p, variants: updatedVariants });
-                              }}
-                              className="w-full text-xs p-2.5 rounded-md border border-[#E8DFD3] bg-[#FAF7F2] focus:outline-none focus:border-[#581420]"
+                            <textarea
+                              rows={3}
+                              value={editingProduct.description}
+                              onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
+                              placeholder="اكتب شرحاً مفصلاً يصف جمال الرائحة والخلطة..."
+                              className="w-full text-xs p-2.5 rounded-md border border-[#E8DFD3] bg-[#FAF7F2] focus:outline-none focus:border-[#581420] leading-relaxed"
                             />
                           </div>
 
-                          <div>
-                            <label className="block text-xs font-bold text-[#554044] mb-1">
-                              شارة المنتج (اختياري):
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="مثال: الأكثر طلباً / جديد / إصدار خاص"
-                              value={editingProduct.badge || ''}
-                              onChange={(e) => setEditingProduct({ ...editingProduct, badge: e.target.value })}
-                              className="w-full text-xs p-2.5 rounded-md border border-[#E8DFD3] bg-[#FAF7F2] focus:outline-none focus:border-[#581420]"
-                            />
-                          </div>
-                        </div>
+                          {/* Scent notes pyramid */}
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-[#FAF7F2] p-3 rounded-lg border border-[#E8DFD3]">
+                            <div>
+                              <label className="block text-[11px] font-bold text-[#581420] mb-1">
+                                قمة العطر (الافتتاحية):
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="مثال: مسك الختام المنعش"
+                                value={editingProduct.scentNotes.top}
+                                onChange={(e) =>
+                                  setEditingProduct({
+                                    ...editingProduct,
+                                    scentNotes: { ...editingProduct.scentNotes, top: e.target.value }
+                                  })
+                                }
+                                className="w-full text-xs p-2 rounded border border-[#E8DFD3] bg-white"
+                              />
+                            </div>
 
-                        <div>
-                          <label className="block text-xs font-bold text-[#554044] mb-1">
-                            الوصف الكامل والتفاصيل:
-                          </label>
-                          <textarea
-                            rows={3}
-                            value={editingProduct.description}
-                            onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
-                            className="w-full text-xs p-2.5 rounded-md border border-[#E8DFD3] bg-[#FAF7F2] focus:outline-none focus:border-[#581420]"
-                          />
-                        </div>
+                            <div>
+                              <label className="block text-[11px] font-bold text-[#581420] mb-1">
+                                قلب العطر:
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="مثال: قطرات العنبر الأشهب"
+                                value={editingProduct.scentNotes.heart}
+                                onChange={(e) =>
+                                  setEditingProduct({
+                                    ...editingProduct,
+                                    scentNotes: { ...editingProduct.scentNotes, heart: e.target.value }
+                                  })
+                                }
+                                className="w-full text-xs p-2 rounded border border-[#E8DFD3] bg-white"
+                              />
+                            </div>
 
-                        {/* Scent notes */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-[#FAF7F2] p-3 rounded-lg border border-[#E8DFD3]">
-                          <div>
-                            <label className="block text-[11px] font-bold text-[#581420] mb-1">
-                              قمة العطر:
-                            </label>
-                            <input
-                              type="text"
-                              value={editingProduct.scentNotes.top}
-                              onChange={(e) =>
-                                setEditingProduct({
-                                  ...editingProduct,
-                                  scentNotes: { ...editingProduct.scentNotes, top: e.target.value }
-                                })
-                              }
-                              className="w-full text-xs p-2 rounded border border-[#E8DFD3] bg-white"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-[11px] font-bold text-[#581420] mb-1">
-                              قلب العطر:
-                            </label>
-                            <input
-                              type="text"
-                              value={editingProduct.scentNotes.heart}
-                              onChange={(e) =>
-                                setEditingProduct({
-                                  ...editingProduct,
-                                  scentNotes: { ...editingProduct.scentNotes, heart: e.target.value }
-                                })
-                              }
-                              className="w-full text-xs p-2 rounded border border-[#E8DFD3] bg-white"
-                            />
+                            <div>
+                              <label className="block text-[11px] font-bold text-[#581420] mb-1">
+                                قاعدة العطر (الثبات):
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="مثال: بخور المستكة والعود الطبيعي"
+                                value={editingProduct.scentNotes.base}
+                                onChange={(e) =>
+                                  setEditingProduct({
+                                    ...editingProduct,
+                                    scentNotes: { ...editingProduct.scentNotes, base: e.target.value }
+                                  })
+                                }
+                                className="w-full text-xs p-2 rounded border border-[#E8DFD3] bg-white"
+                              />
+                            </div>
                           </div>
 
-                          <div>
-                            <label className="block text-[11px] font-bold text-[#581420] mb-1">
-                              قاعدة العطر:
-                            </label>
-                            <input
-                              type="text"
-                              value={editingProduct.scentNotes.base}
-                              onChange={(e) =>
-                                setEditingProduct({
-                                  ...editingProduct,
-                                  scentNotes: { ...editingProduct.scentNotes, base: e.target.value }
-                                })
-                              }
-                              className="w-full text-xs p-2 rounded border border-[#E8DFD3] bg-white"
-                            />
+                          {/* Usage and Crafting Guide */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-xs font-bold text-[#554044] mb-1">
+                                طريقة التبخير والاستخدام:
+                              </label>
+                              <input
+                                type="text"
+                                value={editingProduct.usageInstructions}
+                                onChange={(e) => setEditingProduct({ ...editingProduct, usageInstructions: e.target.value })}
+                                className="w-full text-xs p-2.5 rounded-md border border-[#E8DFD3] bg-[#FAF7F2]"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-bold text-[#554044] mb-1">
+                                تفاصيل الصنعة والتعتيق:
+                              </label>
+                              <input
+                                type="text"
+                                value={editingProduct.craftingDetails}
+                                onChange={(e) => setEditingProduct({ ...editingProduct, craftingDetails: e.target.value })}
+                                className="w-full text-xs p-2.5 rounded-md border border-[#E8DFD3] bg-[#FAF7F2]"
+                              />
+                            </div>
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#F0E8DE]">
+                        {/* Form Action Buttons */}
+                        <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#F0E8DE]">
                           <button
                             type="button"
                             onClick={() => setEditingProduct(null)}
-                            className="px-4 py-2 text-xs font-semibold text-[#70555A] hover:bg-[#FAF5EE] rounded-md transition-colors"
+                            className="px-5 py-2.5 text-xs font-semibold text-[#70555A] hover:bg-[#FAF5EE] rounded-lg transition-colors"
                           >
                             إلغاء
                           </button>
                           <button
                             type="submit"
-                            className="flex items-center gap-1.5 px-5 py-2 text-xs font-bold text-white bg-[#581420] hover:bg-[#430D17] rounded-md shadow-xs cursor-pointer"
+                            className="flex items-center gap-2 px-6 py-2.5 text-xs font-bold text-white bg-[#581420] hover:bg-[#430D17] rounded-lg shadow-md cursor-pointer transition-all active:scale-98"
                           >
-                            <Save className="w-3.5 h-3.5 text-[#E5C378]" />
-                            <span>حفظ التعديلات</span>
+                            <Save className="w-4 h-4 text-[#E5C378]" />
+                            <span>حفظ الصنف وتطبيقه في المتجر</span>
                           </button>
                         </div>
                       </form>
@@ -555,46 +919,66 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     {products.map((product) => (
                       <div
                         key={product.id}
-                        className="bg-white rounded-xl border border-[#E8DFD3] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-[#581420]/30 transition-colors shadow-2xs"
+                        className="bg-white rounded-xl border border-[#E8DFD3] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-[#581420]/40 transition-all shadow-xs"
                       >
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-[#350A11]">
-                              {product.name}
-                            </span>
-                            {product.badge && (
-                              <span className="text-[10px] font-bold px-2 py-0.5 bg-[#581420] text-[#FAF5EE] rounded">
-                                {product.badge}
-                              </span>
+                        <div className="flex items-center gap-3.5">
+                          {/* Image Thumbnail */}
+                          <div className="w-14 h-14 rounded-lg bg-[#FAF5EE] border border-[#E8DFD3] overflow-hidden flex items-center justify-center shrink-0">
+                            {product.imageUrl ? (
+                              <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <Package className="w-6 h-6 text-[#581420]/50" />
                             )}
                           </div>
-                          <p className="text-[11px] text-[#70555A]">
-                            {product.subtitle}
-                          </p>
-                          <div className="flex items-center gap-3 text-xs text-[#8A2535] font-semibold pt-1">
-                            <span>القسم: {product.categoryLabel}</span>
-                            <span>·</span>
-                            <span className="text-[#581420] font-extrabold tabular-nums">
-                              السعر: {product.price} ر.س
-                            </span>
+
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-xs sm:text-sm font-bold text-[#350A11]">
+                                {product.name}
+                              </span>
+                              {product.badge && (
+                                <span className="text-[10px] font-bold px-2 py-0.5 bg-[#581420] text-[#FAF5EE] rounded">
+                                  {product.badge}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-[#70555A] line-clamp-1">
+                              {product.subtitle}
+                            </p>
+                            <div className="flex items-center gap-3 text-xs text-[#8A2535] font-semibold pt-0.5 flex-wrap">
+                              <span>القسم: {product.categoryLabel}</span>
+                              <span>·</span>
+                              <span className="text-[#581420] font-extrabold tabular-nums">
+                                السعر: {product.price} ر.س
+                              </span>
+                              {product.originalPrice && (
+                                <span className="text-neutral-400 line-through text-[11px]">
+                                  {product.originalPrice} ر.س
+                                </span>
+                              )}
+                              <span>·</span>
+                              <span className="text-[11px] text-[#554044]">
+                                {product.variants.length} أحجام متاحة
+                              </span>
+                            </div>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2 self-end sm:self-center">
+                        <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
                           <button
                             onClick={() => {
                               setEditingProduct(product);
                               setIsCreatingNew(false);
                             }}
-                            className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-[#581420] bg-[#FAF5EE] hover:bg-[#581420] hover:text-white rounded-md transition-colors border border-[#E8DFD3]"
+                            className="flex items-center gap-1 px-3.5 py-2 text-xs font-bold text-[#581420] bg-[#FAF5EE] hover:bg-[#581420] hover:text-white rounded-lg transition-colors border border-[#E8DFD3]"
                           >
-                            <Edit2 className="w-3 h-3" />
+                            <Edit2 className="w-3.5 h-3.5" />
                             <span>تعديل</span>
                           </button>
 
                           <button
                             onClick={() => handleDuplicateProduct(product)}
-                            className="p-1.5 text-[#554044] hover:bg-[#FAF5EE] rounded-md transition-colors"
+                            className="p-2 text-[#554044] hover:bg-[#FAF5EE] rounded-lg transition-colors"
                             title="تكرار الصنف"
                           >
                             <Copy className="w-4 h-4" />
@@ -602,7 +986,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                           <button
                             onClick={() => handleDeleteProduct(product.id, product.name)}
-                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             title="حذف الصنف"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -614,7 +998,241 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
               )}
 
-              {/* TAB 2: LOGO MANAGEMENT */}
+              {/* TAB 2: TIKTOK VIDEOS MANAGEMENT */}
+              {activeTab === 'tiktok' && (
+                <div className="space-y-6">
+                  {/* Top Action Bar */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E8DFD3]">
+                    <div>
+                      <h3 className="text-lg font-bold text-[#350A11] flex items-center gap-2">
+                        <Play className="w-5 h-5 text-[#581420]" />
+                        <span>إدارة فيديوهات تيك توك المعروضة</span>
+                      </h3>
+                      <p className="text-xs text-[#70555A]">
+                        تعديل روابط المقاطع المباشرة، الأوصاف، التصنيفات، وأغلفة الفيديوهات
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={handleCreateNewVideo}
+                      className="flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white bg-[#581420] hover:bg-[#430D17] rounded-md transition-all shadow-xs cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>إضافة فيديو جديد</span>
+                    </button>
+                  </div>
+
+                  {/* Video Edit Form */}
+                  {editingVideo && (
+                    <div className="bg-white rounded-xl border-2 border-[#581420] p-4 sm:p-6 shadow-xl space-y-4 animate-fade-in">
+                      <div className="flex items-center justify-between border-b border-[#F0E8DE] pb-3">
+                        <h4 className="text-sm sm:text-base font-bold text-[#581420]">
+                          {isCreatingNewVideo ? 'إضافة فيديو تيك توك جديد' : `تعديل الفيديو: ${editingVideo.title || 'مقطع تيك توك'}`}
+                        </h4>
+                        <button
+                          onClick={() => setEditingVideo(null)}
+                          className="p-1 text-[#70555A] hover:text-black rounded"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+
+                      <form onSubmit={handleSaveVideo} className="space-y-4">
+                        <div>
+                          <label className="block text-xs font-bold text-[#554044] mb-1">
+                            رابط المقطع على تيك توك (URL):
+                          </label>
+                          <input
+                            type="url"
+                            required
+                            placeholder="مثال: https://www.tiktok.com/@kayan_alood/video/7345678901234567890"
+                            value={editingVideo.url}
+                            onChange={(e) => setEditingVideo({ ...editingVideo, url: e.target.value })}
+                            className="w-full text-xs p-2.5 rounded-lg border border-[#E8DFD3] bg-[#FAF7F2] font-mono dir-ltr text-left focus:outline-none focus:border-[#581420]"
+                          />
+                          <span className="text-[10px] text-[#8A2535] mt-1 block">
+                            * عند وضع رابط المقطع المباشر من تيك توك، سيتم تحميل شاشة الفيديو مباشرة في المتجر وعند الضغط يتم التحويل إلى تيك توك.
+                          </span>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-[#554044] mb-1">
+                            أو رابط فيديو حي مباشر (MP4 اختياري):
+                          </label>
+                          <input
+                            type="url"
+                            placeholder="مثال: https://.../video.mp4"
+                            value={editingVideo.videoSourceUrl || ''}
+                            onChange={(e) => setEditingVideo({ ...editingVideo, videoSourceUrl: e.target.value })}
+                            className="w-full text-xs p-2.5 rounded-lg border border-[#E8DFD3] bg-[#FAF7F2] font-mono dir-ltr text-left focus:outline-none focus:border-[#581420]"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-[#554044] mb-1">
+                            الوصف المكتوب وعنوان الفيديو:
+                          </label>
+                          <textarea
+                            rows={2}
+                            required
+                            placeholder="مثال: كواليس سقاية ونقع المستكة البلورية بمسك الختام الملكي 🤍"
+                            value={editingVideo.title}
+                            onChange={(e) => setEditingVideo({ ...editingVideo, title: e.target.value })}
+                            className="w-full text-xs p-2.5 rounded-lg border border-[#E8DFD3] bg-[#FAF7F2] focus:outline-none focus:border-[#581420]"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div>
+                            <label className="block text-xs font-bold text-[#554044] mb-1">
+                              التصنيف (مثال: المستكة البلورية):
+                            </label>
+                            <input
+                              type="text"
+                              value={editingVideo.category}
+                              onChange={(e) => setEditingVideo({ ...editingVideo, category: e.target.value })}
+                              className="w-full text-xs p-2.5 rounded-lg border border-[#E8DFD3] bg-[#FAF7F2]"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-bold text-[#554044] mb-1">
+                              الشارة (مثال: الأكثر تداولاً):
+                            </label>
+                            <input
+                              type="text"
+                              value={editingVideo.badge}
+                              onChange={(e) => setEditingVideo({ ...editingVideo, badge: e.target.value })}
+                              className="w-full text-xs p-2.5 rounded-lg border border-[#E8DFD3] bg-[#FAF7F2]"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-bold text-[#554044] mb-1">
+                              عدد المشاهدات التقريبي:
+                            </label>
+                            <input
+                              type="text"
+                              value={editingVideo.views || '50K'}
+                              onChange={(e) => setEditingVideo({ ...editingVideo, views: e.target.value })}
+                              className="w-full text-xs p-2.5 rounded-lg border border-[#E8DFD3] bg-[#FAF7F2]"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Optional Custom Cover Upload */}
+                        <div className="bg-[#FAF7F2] p-3 rounded-lg border border-[#E8DFD3] space-y-2">
+                          <label className="block text-[11px] font-bold text-[#581420]">
+                            غلاف مخصص للفيديو (اختياري):
+                          </label>
+                          <div className="flex items-center gap-3">
+                            <input
+                              ref={videoThumbnailInputRef}
+                              type="file"
+                              accept="image/*"
+                              onChange={handleVideoThumbnailUpload}
+                              className="hidden"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => videoThumbnailInputRef.current?.click()}
+                              className="px-3 py-1.5 text-xs font-bold text-[#581420] bg-white border border-[#E8DFD3] rounded hover:bg-[#581420] hover:text-white transition-colors"
+                            >
+                              اختيار صورة غلاف من الجهاز
+                            </button>
+                            {editingVideo.customThumbnailUrl && (
+                              <button
+                                type="button"
+                                onClick={() => setEditingVideo({ ...editingVideo, customThumbnailUrl: '' })}
+                                className="text-xs text-red-600 hover:underline"
+                              >
+                                حذف الغلاف
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#F0E8DE]">
+                          <button
+                            type="button"
+                            onClick={() => setEditingVideo(null)}
+                            className="px-4 py-2 text-xs font-semibold text-[#70555A] hover:bg-[#FAF5EE] rounded"
+                          >
+                            إلغاء
+                          </button>
+                          <button
+                            type="submit"
+                            className="px-5 py-2 text-xs font-bold text-white bg-[#581420] hover:bg-[#430D17] rounded shadow cursor-pointer flex items-center gap-1.5"
+                          >
+                            <Save className="w-3.5 h-3.5 text-[#E5C378]" />
+                            <span>حفظ الفيديو</span>
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  )}
+
+                  {/* Videos List */}
+                  <div className="space-y-3">
+                    {tiktokVideos.map((video) => (
+                      <div
+                        key={video.id}
+                        className="bg-white rounded-xl border border-[#E8DFD3] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-[#581420]/40 transition-all shadow-xs"
+                      >
+                        <div className="space-y-1 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold px-2 py-0.5 bg-[#581420] text-[#FAF5EE] rounded text-[10px]">
+                              {video.badge}
+                            </span>
+                            <span className="text-xs text-[#8A2535] font-semibold">
+                              {video.category}
+                            </span>
+                          </div>
+                          <h4 className="text-xs sm:text-sm font-bold text-[#350A11]">
+                            {video.title}
+                          </h4>
+                          <p className="text-[11px] text-[#70555A] font-mono dir-ltr text-right truncate max-w-lg">
+                            {video.url}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                          <a
+                            href={video.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 text-[#581420] hover:bg-[#FAF5EE] rounded-lg transition-colors border border-[#E8DFD3]"
+                            title="معاينة في تيك توك"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+
+                          <button
+                            onClick={() => {
+                              setEditingVideo(video);
+                              setIsCreatingNewVideo(false);
+                            }}
+                            className="flex items-center gap-1 px-3.5 py-2 text-xs font-bold text-[#581420] bg-[#FAF5EE] hover:bg-[#581420] hover:text-white rounded-lg transition-colors border border-[#E8DFD3]"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                            <span>تعديل</span>
+                          </button>
+
+                          <button
+                            onClick={() => handleDeleteVideo(video.id, video.title)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="حذف الفيديو"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 3: LOGO MANAGEMENT */}
               {activeTab === 'logo' && (
                 <div className="space-y-6">
                   <div>
@@ -690,7 +1308,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
               )}
 
-              {/* TAB 3: STORE SETTINGS */}
+              {/* TAB 4: STORE SETTINGS */}
               {activeTab === 'settings' && (
                 <div className="space-y-6">
                   <div>
@@ -800,7 +1418,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           تغيير رمز المرور الخاص بلوحة الإدارة:
                         </span>
                         <span className="text-[11px] text-[#70555A]">
-                          الرمز الحالي: <code className="font-mono">{adminPin}</code>
+                          رمز الدخول الحالي: <code className="font-mono">{adminPin}</code>
                         </span>
                       </div>
                       <button
