@@ -1,0 +1,6 @@
+{
+  "name": "كيان العود | Kayan Aloud",
+  "description": "متجر كيان العود في جدة - مستكة بلورية مسقاة بأفخر الروائح وعود ملبس بالمسك الأصلي صنع بأيدينا بكل حب.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

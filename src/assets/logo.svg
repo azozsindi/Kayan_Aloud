@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" width="100%" height="100%">
+  <!-- Outer Soft Vignette Circle -->
+  <circle cx="160" cy="160" r="154" fill="#FAF4EA" stroke="#681622" stroke-width="7" />
+  
+  <!-- Inner Thin Ring -->
+  <circle cx="160" cy="160" r="143" fill="none" stroke="#681622" stroke-width="2" stroke-opacity="0.9" />
+
+  <!-- LEFT: Brand Typography -->
+  <!-- Arabic: كيان العود -->
+  <g fill="#681622">
+    <!-- Arabic Text rendered with high-precision glyph styling -->
+    <text
+      x="192"
+      y="153"
+      text-anchor="end"
+      font-family="'Tajawal', 'Cairo', 'Arial', sans-serif"
+      font-weight="800"
+      font-size="28.5"
+      letter-spacing="0.5"
+    >
+      كيان العود
+    </text>
+
+    <!-- English: Kayan Aloud -->
+    <text
+      x="192"
+      y="178"
+      text-anchor="end"
+      font-family="'Plus Jakarta Sans', 'Montserrat', 'Segoe UI', sans-serif"
+      font-weight="600"
+      font-size="14.5"
+      letter-spacing="0.8"
+    >
+      Kayan Aloud
+    </text>
+  </g>
+
+  <!-- RIGHT: Royal Crown Crest & Calligraphy Monogram -->
+  <g transform="translate(196, 96)" fill="none" stroke="#681622">
+    <!-- Royal Crown at Top (4 Points with high center peak) -->
+    <path
+      d="M 6 18 L 18 36 L 35 4 L 52 36 L 64 18 L 56 46 C 44 50, 26 50, 14 46 Z"
+      stroke-width="3"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+
+    <!-- Main Calligraphic Swan Stem & S-Flourish (Kayan) -->
+    <path
+      d="M 35 46 C 48 56, 62 66, 58 82 C 54 98, 38 108, 44 126 C 47 134, 53 138, 58 134"
+      stroke-width="3.8"
+      stroke-linecap="round"
+    />
+
+    <!-- Inner Counter Ribbon Stroke -->
+    <path
+      d="M 37 62 C 46 70, 48 84, 40 94"
+      stroke-width="2.8"
+      stroke-linecap="round"
+    />
+
+    <!-- Circular Noon 'ن' with Center Dot -->
+    <circle
+      cx="17"
+      cy="108"
+      r="12"
+      stroke-width="3"
+    />
+    <circle
+      cx="17"
+      cy="108"
+      r="3.5"
+      fill="#681622"
+      stroke="none"
+    />
+
+    <!-- Two Diacritic Dots for Yaa 'ي' -->
+    <circle cx="34" cy="112" r="3" fill="#681622" stroke="none" />
+    <circle cx="28" cy="122" r="3" fill="#681622" stroke="none" />
+  </g>
+</svg>
