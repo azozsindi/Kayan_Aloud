@@ -14,13 +14,14 @@ import {
   PRODUCTS as INITIAL_PRODUCTS,
   INITIAL_TIKTOK_VIDEOS,
   INITIAL_WHATSAPP_REVIEWS,
+  INITIAL_FAQS,
   WHATSAPP_NUMBER,
   WHATSAPP_DIRECT_LINK,
   TIKTOK_HANDLE,
   TIKTOK_URL,
   LOCATION_CITY
 } from './data/products';
-import { Product, ProductVariant, CartItem, StoreSettings, TikTokVideoItem, WhatsAppReviewItem } from './types';
+import { Product, ProductVariant, CartItem, StoreSettings, TikTokVideoItem, WhatsAppReviewItem, FAQItem } from './types';
 import { Sparkles, MessageCircle, Check, Search, ShieldAlert } from 'lucide-react';
 
 const DEFAULT_SETTINGS: StoreSettings = {
@@ -90,6 +91,16 @@ export default function App() {
       return saved ? JSON.parse(saved) : INITIAL_WHATSAPP_REVIEWS;
     } catch {
       return INITIAL_WHATSAPP_REVIEWS;
+    }
+  });
+
+  // FAQs with LocalStorage persistence
+  const [faqs, setFaqs] = useState<FAQItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('kayan_faqs_v1');
+      return saved ? JSON.parse(saved) : INITIAL_FAQS;
+    } catch {
+      return INITIAL_FAQS;
     }
   });
 

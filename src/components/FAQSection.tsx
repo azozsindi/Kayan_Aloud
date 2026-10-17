@@ -1,8 +1,17 @@
 import React, { useState } from 'react';
 import { ChevronDown, MessageCircle, HelpCircle } from 'lucide-react';
-import { FAQS, WHATSAPP_DIRECT_LINK } from '../data/products';
+import { INITIAL_FAQS, WHATSAPP_DIRECT_LINK } from '../data/products';
+import { FAQItem } from '../types';
 
-export const FAQSection: React.FC = () => {
+interface FAQSectionProps {
+  faqs?: FAQItem[];
+  whatsappLink?: string;
+}
+
+export const FAQSection: React.FC<FAQSectionProps> = ({
+  faqs = INITIAL_FAQS,
+  whatsappLink = WHATSAPP_DIRECT_LINK
+}) => {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   const toggle = (index: number) => {
@@ -29,12 +38,12 @@ export const FAQSection: React.FC = () => {
 
         {/* Accordion List */}
         <div className="space-y-3">
-          {FAQS.map((faq, index) => {
+          {faqs.map((faq, index) => {
             const isOpen = openIndex === index;
             return (
               <div
-                key={index}
-                className="bg-white rounded-xl border border-[#E8DFD3] overflow-hidden transition-colors"
+                key={faq.id || index}
+                className="bg-white rounded-xl border border-[#E8DFD3] overflow-hidden transition-colors shadow-2xs"
               >
                 <button
                   onClick={() => toggle(index)}
@@ -50,7 +59,7 @@ export const FAQSection: React.FC = () => {
                 </button>
 
                 {isOpen && (
-                  <div className="px-5 pb-5 pt-1 text-xs sm:text-sm text-[#554044] leading-relaxed border-t border-[#F0E8DE]/80 bg-[#FAF7F2]/50">
+                  <div className="px-5 pb-5 pt-1 text-xs sm:text-sm text-[#554044] leading-relaxed border-t border-[#F0E8DE]/80 bg-[#FAF7F2]/50 font-tajawal">
                     <p>{faq.answer}</p>
                   </div>
                 )}
@@ -65,7 +74,7 @@ export const FAQSection: React.FC = () => {
             لديك استفسار خاص أو ترغب بتجهيز توزيعات لمناسبتك السعيدة؟
           </p>
           <a
-            href={WHATSAPP_DIRECT_LINK}
+            href={whatsappLink}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-[#581420] hover:bg-[#430D17] rounded-md transition-colors shadow-xs"

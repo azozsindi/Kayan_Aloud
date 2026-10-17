@@ -82,5 +82,11 @@ export interface WhatsAppReviewItem {
   date?: string;
 }
 
+export interface FAQItem {
+  id: string;
+  question: string;
+  answer: string;
+}
+
 
 
