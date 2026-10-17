@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, MessageCircle, ExternalLink, Heart, Sparkles, MessageSquare, Share2, Disc3, Volume2, VolumeX } from 'lucide-react';
+import { Play, MessageCircle, ExternalLink, Sparkles, Disc3, Volume2, VolumeX } from 'lucide-react';
 import { TIKTOK_HANDLE, TIKTOK_URL, WHATSAPP_DIRECT_LINK, INITIAL_TIKTOK_VIDEOS } from '../data/products';
 import { TikTokVideoItem } from '../types';
 
@@ -156,30 +156,6 @@ export const TikTokBanner: React.FC<TikTokBannerProps> = ({
                       <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
                         <div className="w-13 h-13 rounded-full bg-black/40 backdrop-blur-md border border-white/60 flex items-center justify-center text-white shadow-2xl transition-all duration-300 group-hover/vid:scale-110 group-hover/vid:bg-[#581420]">
                           <Play className="w-6 h-6 fill-white translate-x-0.5" />
-                        </div>
-                      </div>
-
-                      {/* TikTok Vertical Engagement Column (Right Side) */}
-                      <div className="absolute bottom-12 right-2.5 z-20 flex flex-col items-center gap-2.5">
-                        <div className="flex flex-col items-center">
-                          <div className="w-8 h-8 rounded-full bg-black/60 backdrop-blur-xs flex items-center justify-center text-white hover:text-rose-400 transition-colors">
-                            <Heart className="w-4 h-4 fill-rose-500 text-rose-500" />
-                          </div>
-                          <span className="text-[9px] font-bold text-white font-mono mt-0.5">{card.likes || '4.8K'}</span>
-                        </div>
-
-                        <div className="flex flex-col items-center">
-                          <div className="w-8 h-8 rounded-full bg-black/60 backdrop-blur-xs flex items-center justify-center text-white">
-                            <MessageSquare className="w-4 h-4 fill-white/80" />
-                          </div>
-                          <span className="text-[9px] font-bold text-white font-mono mt-0.5">تعليقات</span>
-                        </div>
-
-                        <div className="flex flex-col items-center">
-                          <div className="w-8 h-8 rounded-full bg-black/60 backdrop-blur-xs flex items-center justify-center text-white">
-                            <Share2 className="w-4 h-4" />
-                          </div>
-                          <span className="text-[9px] font-bold text-white font-mono mt-0.5">مشاركة</span>
                         </div>
                       </div>
 
