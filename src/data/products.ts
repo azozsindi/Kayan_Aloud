@@ -210,7 +210,6 @@ export const INITIAL_TIKTOK_VIDEOS: TikTokVideoItem[] = [
     category: 'المستكة البلورية',
     badge: 'كواليس الورشة',
     url: 'https://www.tiktok.com/@kayan_alood',
-    videoSourceUrl: 'https://assets.mixkit.co/videos/preview/mixkit-smoke-from-an-incense-stick-41484-large.mp4',
     views: '48.2K',
     likes: '4.8K'
   },
@@ -220,7 +219,6 @@ export const INITIAL_TIKTOK_VIDEOS: TikTokVideoItem[] = [
     category: 'العود الملبس بالمسك',
     badge: 'الأكثر تداولاً',
     url: 'https://www.tiktok.com/@kayan_alood',
-    videoSourceUrl: 'https://assets.mixkit.co/videos/preview/mixkit-burning-incense-coals-in-a-censer-43189-large.mp4',
     views: '76.4K',
     likes: '8.2K'
   },
@@ -230,9 +228,17 @@ export const INITIAL_TIKTOK_VIDEOS: TikTokVideoItem[] = [
     category: 'بوكسات الإهداء',
     badge: 'تغليف الهدايا',
     url: 'https://www.tiktok.com/@kayan_alood',
-    videoSourceUrl: 'https://assets.mixkit.co/videos/preview/mixkit-drops-of-essential-oil-falling-into-a-glass-jar-41473-large.mp4',
     views: '52.1K',
     likes: '5.6K'
+  },
+  {
+    id: 'vid-4',
+    title: 'تجربة فوحان وثبات المستكة المسقاة على الجمر الهادئ في المجالس ☕',
+    category: 'تجربة التبخير',
+    badge: 'تجربة حية',
+    url: 'https://www.tiktok.com/@kayan_alood',
+    views: '64.9K',
+    likes: '6.4K'
   }
 ];
 

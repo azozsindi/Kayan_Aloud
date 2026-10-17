@@ -92,8 +92,8 @@ export const TikTokBanner: React.FC<TikTokBannerProps> = ({
           </div>
         </div>
 
-        {/* Real Live TikTok Video Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+        {/* Real Live TikTok Video Cards Grid: 4 Side-by-Side on Desktop, 2x2 on Mobile */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {videos.map((card, idx) => {
             const tikTokId = extractTikTokVideoId(card.url || card.videoId || '');
             const isMuted = mutedStates[card.id] ?? true;
@@ -101,10 +101,10 @@ export const TikTokBanner: React.FC<TikTokBannerProps> = ({
             return (
               <div
                 key={card.id || idx}
-                className="group relative rounded-2xl bg-[#240F15] border-2 border-[#4A1D27] hover:border-[#E5C378] p-3 sm:p-4 transition-all duration-300 overflow-hidden flex flex-col justify-between shadow-xl hover:shadow-2xl hover:-translate-y-1"
+                className="group relative rounded-xl bg-[#240F15] border border-[#4A1D27] hover:border-[#E5C378] p-2.5 sm:p-3 transition-all duration-300 overflow-hidden flex flex-col justify-between shadow-lg hover:shadow-xl hover:-translate-y-1"
               >
                 {/* Smartphone Video Frame */}
-                <div className="relative aspect-[9/14] sm:aspect-[4/5] lg:aspect-[9/13] w-full rounded-xl overflow-hidden mb-3.5 border border-[#581420]/80 bg-black shadow-inner">
+                <div className="relative aspect-[9/13] w-full rounded-lg overflow-hidden mb-2.5 border border-[#581420]/80 bg-black shadow-inner">
                   
                   {tikTokId ? (
                     /* Real Live Official TikTok Embed Iframe Player */
@@ -123,15 +123,35 @@ export const TikTokBanner: React.FC<TikTokBannerProps> = ({
                       onClick={() => window.open(card.url || tiktokUrl, '_blank')}
                       className="relative w-full h-full cursor-pointer overflow-hidden group/vid"
                     >
-                      {/* Real Live Video Footage */}
-                      <video
-                        src={card.videoSourceUrl || 'https://assets.mixkit.co/videos/preview/mixkit-smoke-from-an-incense-stick-41484-large.mp4'}
-                        autoPlay
-                        loop
-                        muted={isMuted}
-                        playsInline
-                        className="w-full h-full object-cover transform transition-transform duration-700 group-hover/vid:scale-105"
-                      />
+                      {/* Real Video or Rich Live TikTok Card Preview */}
+                      {card.videoSourceUrl ? (
+                        <video
+                          src={card.videoSourceUrl}
+                          autoPlay
+                          loop
+                          muted={isMuted}
+                          playsInline
+                          className="w-full h-full object-cover transform transition-transform duration-700 group-hover/vid:scale-105"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-b from-[#351019] via-[#220B11] to-[#120509] flex flex-col items-center justify-center p-3 relative overflow-hidden">
+                          {/* Ambient Golden Amber Glow */}
+                          <div className="absolute w-32 h-32 rounded-full bg-[#E5C378]/20 blur-2xl" />
+                          
+                          {/* Subtle Smoke Wisp */}
+                          <div className="w-16 h-12 opacity-60 mb-2">
+                            <svg viewBox="0 0 60 40" fill="none" className="w-full h-full">
+                              <path d="M15 35 C25 20, 20 10, 35 15 C45 20, 40 5, 50 0" stroke="#FAF5EE" strokeWidth="2.5" strokeLinecap="round" filter="blur(1px)" />
+                            </svg>
+                          </div>
+
+                          {/* TikTok Brand Watermark Badge */}
+                          <div className="relative z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 border border-[#E5C378]/30 shadow-md">
+                            <span className="w-2 h-2 rounded-full bg-[#25F4EE] animate-ping" />
+                            <span className="text-[10px] font-bold text-white tracking-wide">TikTok Video</span>
+                          </div>
+                        </div>
+                      )}
 
                       {/* Dark Vignette Overlay for Readability */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/35 pointer-events-none" />
@@ -154,18 +174,18 @@ export const TikTokBanner: React.FC<TikTokBannerProps> = ({
 
                       {/* Central Floating TikTok Play Badge */}
                       <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-                        <div className="w-13 h-13 rounded-full bg-black/40 backdrop-blur-md border border-white/60 flex items-center justify-center text-white shadow-2xl transition-all duration-300 group-hover/vid:scale-110 group-hover/vid:bg-[#581420]">
-                          <Play className="w-6 h-6 fill-white translate-x-0.5" />
+                        <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/45 backdrop-blur-md border border-white/60 flex items-center justify-center text-white shadow-xl transition-all duration-300 group-hover/vid:scale-110 group-hover/vid:bg-[#581420]">
+                          <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-white translate-x-0.5" />
                         </div>
                       </div>
 
                       {/* Bottom Bar: Sound track name & Views counter */}
-                      <div className="absolute bottom-2.5 inset-x-3 z-20 flex items-center justify-between text-[11px] text-[#FAF5EE]">
-                        <div className="flex items-center gap-1.5 text-[10px] text-[#E5C378] font-medium truncate max-w-[70%]">
-                          <Disc3 className="w-3.5 h-3.5 animate-spin" />
-                          <span className="truncate">الصوت الأصلي - كيان العود</span>
+                      <div className="absolute bottom-2 inset-x-2.5 z-20 flex items-center justify-between text-[10px] text-[#FAF5EE]">
+                        <div className="flex items-center gap-1 text-[9px] text-[#E5C378] font-medium truncate max-w-[65%]">
+                          <Disc3 className="w-3 h-3 animate-spin shrink-0" />
+                          <span className="truncate">كيان العود</span>
                         </div>
-                        <span className="font-mono text-[10px] font-bold text-neutral-200 bg-black/50 px-2 py-0.5 rounded backdrop-blur-xs">
+                        <span className="font-mono text-[9px] font-bold text-neutral-200 bg-black/60 px-1.5 py-0.5 rounded backdrop-blur-xs">
                           {card.views || '45K'}
                         </span>
                       </div>
@@ -175,25 +195,27 @@ export const TikTokBanner: React.FC<TikTokBannerProps> = ({
                 </div>
 
                 {/* Video Title & Actions */}
-                <div className="pt-1 text-right">
-                  <span className="text-[10px] font-bold text-[#E5C378] block mb-1">
-                    {card.category || 'مستكة وعود فاخر'}
-                  </span>
-                  <h3 className="text-xs sm:text-sm font-bold text-[#FAF5EE] group-hover:text-[#E5C378] transition-colors leading-relaxed line-clamp-2 font-tajawal">
-                    {card.title}
-                  </h3>
+                <div className="pt-1 text-right flex-1 flex flex-col justify-between">
+                  <div>
+                    <span className="text-[9px] font-bold text-[#E5C378] block mb-0.5">
+                      {card.category || 'مستكة وعود فاخر'}
+                    </span>
+                    <h3 className="text-xs font-bold text-[#FAF5EE] group-hover:text-[#E5C378] transition-colors leading-snug line-clamp-2 font-tajawal min-h-[30px]">
+                      {card.title}
+                    </h3>
+                  </div>
                   
-                  <div className="mt-2.5 pt-2 border-t border-[#4A242E] flex items-center justify-between text-[11px] text-[#C49FA7]">
+                  <div className="mt-2 pt-2 border-t border-[#4A242E] flex items-center justify-between text-[10px] text-[#C49FA7]">
                     <a
                       href={card.url || tiktokUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-white hover:text-[#E5C378] font-bold transition-colors cursor-pointer bg-white/10 hover:bg-white/20 px-2.5 py-1 rounded-md"
+                      className="flex items-center gap-1 text-white hover:text-[#E5C378] font-bold transition-colors cursor-pointer bg-white/10 hover:bg-white/20 px-2 py-1 rounded"
                     >
-                      <Play className="w-3 h-3 fill-current" />
-                      <span>فتح المقطع على تيك توك</span>
+                      <Play className="w-2.5 h-2.5 fill-current" />
+                      <span>مشاهدة</span>
                     </a>
-                    <span className="dir-ltr text-[10px] font-bold text-[#E5C378]">@{tiktokHandle}</span>
+                    <span className="dir-ltr text-[9px] font-bold text-[#E5C378]">@{tiktokHandle}</span>
                   </div>
                 </div>
 

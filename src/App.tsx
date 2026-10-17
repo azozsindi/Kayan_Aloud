@@ -69,7 +69,10 @@ export default function App() {
   const [tiktokVideos, setTiktokVideos] = useState<TikTokVideoItem[]>(() => {
     try {
       const saved = localStorage.getItem('kayan_tiktok_videos');
-      return saved ? JSON.parse(saved) : INITIAL_TIKTOK_VIDEOS;
+      if (saved && !saved.includes('mixkit.co')) {
+        return JSON.parse(saved);
+      }
+      return INITIAL_TIKTOK_VIDEOS;
     } catch {
       return INITIAL_TIKTOK_VIDEOS;
     }
