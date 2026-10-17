@@ -1,14 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" width="100%" height="100%">
   <!-- Outer Soft Vignette Circle -->
-  <circle cx="160" cy="160" r="154" fill="#FAF4EA" stroke="#681622" stroke-width="7" />
+  <circle cx="160" cy="160" r="154" fill="#FAF5EE" stroke="#581420" stroke-width="7" />
   
   <!-- Inner Thin Ring -->
-  <circle cx="160" cy="160" r="143" fill="none" stroke="#681622" stroke-width="2" stroke-opacity="0.9" />
+  <circle cx="160" cy="160" r="143" fill="none" stroke="#581420" stroke-width="2" stroke-opacity="0.9" />
 
   <!-- LEFT: Brand Typography -->
   <!-- Arabic: كيان العود -->
-  <g fill="#681622">
-    <!-- Arabic Text rendered with high-precision glyph styling -->
+  <g fill="#581420">
     <text
       x="192"
       y="153"
@@ -36,7 +35,7 @@
   </g>
 
   <!-- RIGHT: Royal Crown Crest & Calligraphy Monogram -->
-  <g transform="translate(196, 96)" fill="none" stroke="#681622">
+  <g transform="translate(196, 96)" fill="none" stroke="#581420">
     <!-- Royal Crown at Top (4 Points with high center peak) -->
     <path
       d="M 6 18 L 18 36 L 35 4 L 52 36 L 64 18 L 56 46 C 44 50, 26 50, 14 46 Z"
@@ -70,12 +69,12 @@
       cx="17"
       cy="108"
       r="3.5"
-      fill="#681622"
+      fill="#581420"
       stroke="none"
     />
 
     <!-- Two Diacritic Dots for Yaa 'ي' -->
-    <circle cx="34" cy="112" r="3" fill="#681622" stroke="none" />
-    <circle cx="28" cy="122" r="3" fill="#681622" stroke="none" />
+    <circle cx="34" cy="112" r="3" fill="#581420" stroke="none" />
+    <circle cx="28" cy="122" r="3" fill="#581420" stroke="none" />
   </g>
 </svg>

@@ -19,14 +19,23 @@ export const ProductVisual: React.FC<ProductVisualProps> = ({
       const isLavender = product.id.includes('lavender');
 
       const primaryHue = isLavender ? '#7E57C2' : isAmber ? '#D97706' : '#C59B27';
-      const bgGradient = isLavender
-        ? 'from-[#251A2E] via-[#352542] to-[#1F1526]'
+      const bgGradientStyle = isLavender
+        ? 'linear-gradient(135deg, #251A2E 0%, #352542 50%, #1F1526 100%)'
         : isAmber
-        ? 'from-[#2B1B12] via-[#3D2518] to-[#1C110B]'
-        : 'from-[#2A171C] via-[#3B1F27] to-[#1E0F13]';
+        ? 'linear-gradient(135deg, #2B1B12 0%, #3D2518 50%, #1C110B 100%)'
+        : 'linear-gradient(135deg, #2A171C 0%, #3B1F27 50%, #1E0F13 100%)';
+
+      const gemColors = isAmber
+        ? ['#F59E0B', '#D97706', '#FBBF24', '#D97706', '#F59E0B', '#B45309']
+        : isLavender
+        ? ['#DDD6FE', '#C4B5FD', '#EDE9FE', '#A78BFA', '#C4B5FD', '#DDD6FE']
+        : ['#FEF3C7', '#FDE68A', '#FFFBEB', '#FCD34D', '#FEF08A', '#FDE047'];
 
       return (
-        <div className={`relative w-full h-full flex items-center justify-center overflow-hidden bg-gradient-to-br ${bgGradient}`}>
+        <div
+          className="relative w-full h-full flex items-center justify-center overflow-hidden"
+          style={{ background: bgGradientStyle }}
+        >
           {/* Ambient Lighting & Glow */}
           <div
             className="absolute w-48 h-48 rounded-full blur-2xl opacity-30"
@@ -58,7 +67,10 @@ export const ProductVisual: React.FC<ProductVisualProps> = ({
             </div>
 
             {/* Brass / Gold Jar Lid */}
-            <div className="w-24 h-5 rounded-t-md bg-gradient-to-r from-[#D4AF37] via-[#FFF3D1] to-[#AA8220] shadow-md border-b border-[#8A6A18] flex items-center justify-center">
+            <div
+              className="w-24 h-5 rounded-t-md shadow-md border-b border-[#8A6A18] flex items-center justify-center"
+              style={{ background: 'linear-gradient(90deg, #D4AF37 0%, #FFF3D1 50%, #AA8220 100%)' }}
+            >
               <div className="w-16 h-0.5 bg-[#8A6A18]/40 rounded-full" />
             </div>
             <div className="w-20 h-2 bg-[#AA8220]" />
@@ -76,16 +88,17 @@ export const ProductVisual: React.FC<ProductVisualProps> = ({
               {/* Crystal Mastic Stones inside */}
               <div className="relative z-10 grid grid-cols-3 gap-1.5 p-3 scale-90">
                 {[
-                  { size: 'w-7 h-6', rot: 'rotate-12', color: isAmber ? 'bg-[#F59E0B]' : isLavender ? 'bg-[#DDD6FE]' : 'bg-[#FEF3C7]' },
-                  { size: 'w-6 h-7', rot: '-rotate-6', color: isAmber ? 'bg-[#D97706]' : isLavender ? 'bg-[#C4B5FD]' : 'bg-[#FDE68A]' },
-                  { size: 'w-8 h-7', rot: 'rotate-45', color: isAmber ? 'bg-[#FBBF24]' : isLavender ? 'bg-[#EDE9FE]' : 'bg-[#FFFBEB]' },
-                  { size: 'w-7 h-8', rot: '-rotate-12', color: isAmber ? 'bg-[#D97706]' : isLavender ? 'bg-[#A78BFA]' : 'bg-[#FCD34D]' },
-                  { size: 'w-8 h-6', rot: 'rotate-6', color: isAmber ? 'bg-[#F59E0B]' : isLavender ? 'bg-[#C4B5FD]' : 'bg-[#FEF08A]' },
-                  { size: 'w-6 h-6', rot: '-rotate-45', color: isAmber ? 'bg-[#B45309]' : isLavender ? 'bg-[#DDD6FE]' : 'bg-[#FDE047]' },
+                  { size: 'w-7 h-6', rot: 'rotate-12' },
+                  { size: 'w-6 h-7', rot: '-rotate-6' },
+                  { size: 'w-8 h-7', rot: 'rotate-45' },
+                  { size: 'w-7 h-8', rot: '-rotate-12' },
+                  { size: 'w-8 h-6', rot: 'rotate-6' },
+                  { size: 'w-6 h-6', rot: '-rotate-45' }
                 ].map((gem, idx) => (
                   <div
                     key={idx}
-                    className={`${gem.size} ${gem.rot} ${gem.color} rounded-sm shadow-inner border border-white/60 relative overflow-hidden flex items-center justify-center transition-transform hover:scale-110`}
+                    className={`${gem.size} ${gem.rot} rounded-sm shadow-inner border border-white/60 relative overflow-hidden flex items-center justify-center transition-transform hover:scale-110`}
+                    style={{ backgroundColor: gemColors[idx] }}
                   >
                     {/* Glistening facet highlight */}
                     <div className="absolute top-0 right-0 w-3 h-3 bg-white/80 rounded-bl-sm" />
@@ -95,7 +108,7 @@ export const ProductVisual: React.FC<ProductVisualProps> = ({
               </div>
 
               {/* Luxury Brand Label Band on Jar */}
-              <div className="absolute bottom-3 left-2 right-2 py-1 px-2 rounded-sm bg-[#581420]/90 border border-[#D4AF37]/50 text-center shadow-lg">
+              <div className="absolute bottom-3 left-2 right-2 py-1 px-2 rounded-sm bg-[#581420]/95 border border-[#D4AF37]/60 text-center shadow-lg">
                 <span className="text-[9px] font-bold text-[#FAF5EE] tracking-wide block font-tajawal">
                   كيان العود · مستكة بلورية
                 </span>
@@ -113,7 +126,10 @@ export const ProductVisual: React.FC<ProductVisualProps> = ({
       const isRose = product.id.includes('rose');
 
       return (
-        <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#1C1315] via-[#2A181C] to-[#120B0D]">
+        <div
+          className="relative w-full h-full flex items-center justify-center overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, #1C1315 0%, #2A181C 50%, #120B0D 100%)' }}
+        >
           {/* Warm Amber Rim Lighting */}
           <div className="absolute w-44 h-44 rounded-full bg-[#C59B27]/20 blur-3xl" />
 
@@ -158,7 +174,7 @@ export const ProductVisual: React.FC<ProductVisualProps> = ({
                   {/* White Musk Powder Dusting */}
                   <div className="absolute inset-0 bg-[radial-gradient(#FFFFFF_1.5px,transparent_1.5px)] [background-size:4px_4px] opacity-75" />
                   <div className="w-full text-center z-10">
-                    <span className="text-[8px] font-bold text-white bg-[#581420]/90 px-1 py-0.5 rounded-xs block">
+                    <span className="text-[8px] font-bold text-white bg-[#581420]/95 px-1 py-0.5 rounded-xs block">
                       ملبس بالمسك
                     </span>
                   </div>
@@ -200,7 +216,10 @@ export const ProductVisual: React.FC<ProductVisualProps> = ({
 
     // Royal Gifting Box
     return (
-      <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#3D0C14] via-[#581420] to-[#24050A]">
+      <div
+        className="relative w-full h-full flex items-center justify-center overflow-hidden"
+        style={{ background: 'linear-gradient(135deg, #3D0C14 0%, #581420 50%, #24050A 100%)' }}
+      >
         {/* Ambient Royal Gold Glow */}
         <div className="absolute w-56 h-56 rounded-full bg-[#E5C378]/20 blur-3xl" />
 
@@ -210,10 +229,16 @@ export const ProductVisual: React.FC<ProductVisualProps> = ({
         {/* Royal Burgundy Box with Gold Ribbon */}
         <div className="relative z-10 w-48 h-36 rounded-xl bg-[#4A0F19] border border-[#C59B27]/60 shadow-2xl flex flex-col items-center justify-center p-3 relative overflow-hidden">
           {/* Gold Satin Ribbon Cross */}
-          <div className="absolute inset-y-0 w-5 bg-gradient-to-r from-[#C59B27] via-[#FFF0B3] to-[#A87F17] shadow-sm flex items-center justify-center">
+          <div
+            className="absolute inset-y-0 w-5 shadow-sm flex items-center justify-center"
+            style={{ background: 'linear-gradient(90deg, #C59B27 0%, #FFF0B3 50%, #A87F17 100%)' }}
+          >
             <div className="w-0.5 h-full bg-[#8A6A18]/50" />
           </div>
-          <div className="absolute inset-x-0 h-5 bg-gradient-to-b from-[#C59B27] via-[#FFF0B3] to-[#A87F17] shadow-sm flex items-center justify-center">
+          <div
+            className="absolute inset-x-0 h-5 shadow-sm flex items-center justify-center"
+            style={{ background: 'linear-gradient(180deg, #C59B27 0%, #FFF0B3 50%, #A87F17 100%)' }}
+          >
             <div className="h-0.5 w-full bg-[#8A6A18]/50" />
           </div>
 
