@@ -13,13 +13,14 @@ import { AdminDashboard } from './components/AdminDashboard';
 import {
   PRODUCTS as INITIAL_PRODUCTS,
   INITIAL_TIKTOK_VIDEOS,
+  INITIAL_WHATSAPP_REVIEWS,
   WHATSAPP_NUMBER,
   WHATSAPP_DIRECT_LINK,
   TIKTOK_HANDLE,
   TIKTOK_URL,
   LOCATION_CITY
 } from './data/products';
-import { Product, ProductVariant, CartItem, StoreSettings, TikTokVideoItem } from './types';
+import { Product, ProductVariant, CartItem, StoreSettings, TikTokVideoItem, WhatsAppReviewItem } from './types';
 import { Sparkles, MessageCircle, Check, Search, ShieldAlert } from 'lucide-react';
 
 const DEFAULT_SETTINGS: StoreSettings = {
@@ -68,13 +69,27 @@ export default function App() {
   // TikTok Videos with LocalStorage persistence
   const [tiktokVideos, setTiktokVideos] = useState<TikTokVideoItem[]>(() => {
     try {
-      const saved = localStorage.getItem('kayan_tiktok_videos');
-      if (saved && !saved.includes('mixkit.co')) {
-        return JSON.parse(saved);
+      const saved = localStorage.getItem('kayan_tiktok_videos_v3');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return parsed.map((v: TikTokVideoItem) => {
+          const match = v.url?.match(/\/video\/(\d+)/);
+          return match ? { ...v, videoId: match[1] } : v;
+        });
       }
       return INITIAL_TIKTOK_VIDEOS;
     } catch {
       return INITIAL_TIKTOK_VIDEOS;
+    }
+  });
+
+  // WhatsApp Reviews with LocalStorage persistence
+  const [whatsappReviews, setWhatsappReviews] = useState<WhatsAppReviewItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('kayan_whatsapp_reviews_v2');
+      return saved ? JSON.parse(saved) : INITIAL_WHATSAPP_REVIEWS;
+    } catch {
+      return INITIAL_WHATSAPP_REVIEWS;
     }
   });
 
@@ -115,11 +130,20 @@ export default function App() {
   // Sync TikTok videos to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem('kayan_tiktok_videos', JSON.stringify(tiktokVideos));
+      localStorage.setItem('kayan_tiktok_videos_v3', JSON.stringify(tiktokVideos));
     } catch {
       // LocalStorage fallback
     }
   }, [tiktokVideos]);
+
+  // Sync WhatsApp reviews to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('kayan_whatsapp_reviews_v2', JSON.stringify(whatsappReviews));
+    } catch {
+      // LocalStorage fallback
+    }
+  }, [whatsappReviews]);
 
   // Check URL (hash, pathname, query) and keyboard typing for "OUD"
   useEffect(() => {
@@ -217,14 +241,16 @@ export default function App() {
     setProducts(INITIAL_PRODUCTS);
     setSettings(DEFAULT_SETTINGS);
     setTiktokVideos(INITIAL_TIKTOK_VIDEOS);
+    setWhatsappReviews(INITIAL_WHATSAPP_REVIEWS);
     try {
       localStorage.removeItem('kayan_products');
       localStorage.removeItem('kayan_settings');
-      localStorage.removeItem('kayan_tiktok_videos');
+      localStorage.removeItem('kayan_tiktok_videos_v3');
+      localStorage.removeItem('kayan_whatsapp_reviews_v2');
     } catch {
       // ignore
     }
-    showToast('تمت استعادة الأصناف والإعدادات الافتراضية');
+    showToast('تمت استعادة الأصناف والمحادثات والإعدادات الافتراضية');
   };
 
   // Filter products by category & search query
@@ -456,7 +482,7 @@ export default function App() {
         />
 
         {/* Reviews & Social Proof */}
-        <ReviewsSection />
+        <ReviewsSection whatsappReviews={whatsappReviews} />
 
         {/* FAQs */}
         <FAQSection />
@@ -510,6 +536,8 @@ export default function App() {
         onResetDefaults={handleResetDefaults}
         tiktokVideos={tiktokVideos}
         onUpdateTikTokVideos={setTiktokVideos}
+        whatsappReviews={whatsappReviews}
+        onUpdateWhatsAppReviews={setWhatsappReviews}
       />
 
       {/* Toast Notification */}

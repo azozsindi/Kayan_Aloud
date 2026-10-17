@@ -1,4 +1,4 @@
-import { Product, TikTokVideoItem } from '../types';
+import { Product, TikTokVideoItem, WhatsAppReviewItem } from '../types';
 
 export const WHATSAPP_NUMBER = '966503676367';
 export const WHATSAPP_DIRECT_LINK = 'https://iwtsp.com/966503676367';
@@ -206,39 +206,69 @@ export const FAQS = [
 export const INITIAL_TIKTOK_VIDEOS: TikTokVideoItem[] = [
   {
     id: 'vid-1',
-    title: 'كواليس سقاية ونقع المستكة البلورية بمسك الختام الملكي 🤍',
-    category: 'المستكة البلورية',
-    badge: 'كواليس الورشة',
-    url: 'https://www.tiktok.com/@kayan_alood',
-    views: '48.2K',
-    likes: '4.8K'
+    title: 'إعلان بخور معتق فاخر برائحة فواحة وثابتة تدوم طويلاً 🤍',
+    category: 'إعلان رسمي',
+    badge: 'إعلان',
+    url: 'https://www.tiktok.com/@kayan_alood/video/7569492082465754376',
+    videoId: '7569492082465754376',
+    views: '54.8K',
+    likes: '5.2K'
   },
   {
     id: 'vid-2',
-    title: 'طريقة تلبيس العود المروكي الفاخر ببودرة المسك الملكي حبة بحبة ✨',
-    category: 'العود الملبس بالمسك',
-    badge: 'الأكثر تداولاً',
-    url: 'https://www.tiktok.com/@kayan_alood',
+    title: 'توزيعات المستكة البلورية الفاخرة للمناسبات والأفراح ✨',
+    category: 'توزيعات فاخرة',
+    badge: 'توزيعات',
+    url: 'https://www.tiktok.com/@kayan_alood/video/7201267418033949954',
+    videoId: '7201267418033949954',
     views: '76.4K',
     likes: '8.2K'
   },
   {
     id: 'vid-3',
-    title: 'تجهيز بوكسات الإهداء الملكية مع كروت الإهداء لأهل جدة الحبايب 🎁',
-    category: 'بوكسات الإهداء',
-    badge: 'تغليف الهدايا',
-    url: 'https://www.tiktok.com/@kayan_alood',
-    views: '52.1K',
-    likes: '5.6K'
-  },
-  {
-    id: 'vid-4',
-    title: 'تجربة فوحان وثبات المستكة المسقاة على الجمر الهادئ في المجالس ☕',
-    category: 'تجربة التبخير',
-    badge: 'تجربة حية',
-    url: 'https://www.tiktok.com/@kayan_alood',
-    views: '64.9K',
-    likes: '6.4K'
+    title: 'تجهيز توزيعات حفل تخرج أنيقة ومميزة لمناسبات النجاح 🎓',
+    category: 'حفل تخرج',
+    badge: 'توزيعات تخرج',
+    url: 'https://www.tiktok.com/@kayan_alood/video/7630005550213778706',
+    videoId: '7630005550213778706',
+    views: '68.1K',
+    likes: '7.4K'
   }
 ];
+
+export const INITIAL_WHATSAPP_REVIEWS: WhatsAppReviewItem[] = [
+  {
+    id: 'wa-1',
+    customerName: 'أم ريان الغامدي',
+    city: 'جدة - حي الشاطئ',
+    productName: 'مستكة بلورية بمسك الختام',
+    textSnippet: 'ما شاء الله تبارك الرحمن! المستكة البلورية بمسك الختام تفوز من جد.. البيت صار كأنه قصر، الفوحان جلس معاي لثاني يوم، وسرعة التوصيل بجدة بنفس اليوم.',
+    date: 'اليوم، 10:24 م'
+  },
+  {
+    id: 'wa-2',
+    customerName: 'سلطان القحطاني',
+    city: 'الرياض',
+    productName: 'عود مروكي ملبس بالمسك',
+    textSnippet: 'طلبت العود المروكي الملبس بالمسك وتخوفت إنه يكون مسك تجاري، لكن يشهد الله جودة ونظافة وشغل يد متعوب عليه. الرائحة سويتية رايقة والكسرة تطول على الجمر.',
+    date: 'أمس، 8:15 م'
+  },
+  {
+    id: 'wa-3',
+    customerName: 'سارة الشريف',
+    city: 'جدة - حي الزهراء',
+    productName: 'صندوق الإهداء الملكي',
+    textSnippet: 'تعامل راقي جداً عبر الواتساب. طلبت صندوق الإهداء الملكي لوالدتي وأضافوا لي كرت الإهداء بكتابة جميلة وتغليف يواجه. فخر أن هذا الشغل بأيدي بنات وأبناء جدة.',
+    date: 'الخميس، 4:40 م'
+  },
+  {
+    id: 'wa-4',
+    customerName: 'فيصل الحربي',
+    city: 'مكة المكرمة',
+    productName: 'مستكة بلورية بالعنبر والعود',
+    textSnippet: 'شفت حسابهم على تيك توك وطلبت المستكة بالعنبر والعود، التغليف يفتح النفس والريحة ثباتها عالي في المجالس. يستاهلون كل الدعم والتقييم 10 من 10.',
+    date: 'الأسبوع الماضي'
+  }
+];
+
 

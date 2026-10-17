@@ -92,29 +92,30 @@ export const TikTokBanner: React.FC<TikTokBannerProps> = ({
           </div>
         </div>
 
-        {/* Real Live TikTok Video Cards Grid: 4 Side-by-Side on Desktop, 2x2 on Mobile */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {videos.map((card, idx) => {
+        {/* Real Live TikTok Video Cards Grid: 3 Side-by-Side Horizontally */}
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6 max-w-5xl mx-auto">
+          {videos.slice(0, 3).map((card, idx) => {
             const tikTokId = extractTikTokVideoId(card.url || card.videoId || '');
             const isMuted = mutedStates[card.id] ?? true;
 
             return (
               <div
                 key={card.id || idx}
-                className="group relative rounded-xl bg-[#240F15] border border-[#4A1D27] hover:border-[#E5C378] p-2.5 sm:p-3 transition-all duration-300 overflow-hidden flex flex-col justify-between shadow-lg hover:shadow-xl hover:-translate-y-1"
+                className="group relative rounded-xl bg-[#240F15] border border-[#4A1D27] hover:border-[#E5C378] p-1.5 sm:p-3 transition-all duration-300 overflow-hidden flex flex-col justify-between shadow-lg hover:shadow-xl hover:-translate-y-1"
               >
                 {/* Smartphone Video Frame */}
-                <div className="relative aspect-[9/13] w-full rounded-lg overflow-hidden mb-2.5 border border-[#581420]/80 bg-black shadow-inner">
+                <div className="relative aspect-[9/14] w-full rounded-lg overflow-hidden mb-2 border border-[#581420]/80 bg-black shadow-inner">
                   
                   {tikTokId ? (
-                    /* Real Live Official TikTok Embed Iframe Player */
-                    <div className="w-full h-full relative bg-black">
+                    /* Pure Single Video Player (No related clips or social feeds) */
+                    <div className="w-full h-full relative bg-black overflow-hidden rounded-lg">
                       <iframe
-                        src={`https://www.tiktok.com/embed/v2/${tikTokId}`}
+                        src={`https://www.tiktok.com/player/v1/${tikTokId}`}
                         title={card.title}
-                        className="w-full h-full border-0 rounded-xl"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        className="w-full h-full border-0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                         allowFullScreen
+                        scrolling="no"
                       />
                     </div>
                   ) : (
@@ -197,10 +198,10 @@ export const TikTokBanner: React.FC<TikTokBannerProps> = ({
                 {/* Video Title & Actions */}
                 <div className="pt-1 text-right flex-1 flex flex-col justify-between">
                   <div>
-                    <span className="text-[9px] font-bold text-[#E5C378] block mb-0.5">
+                    <span className="text-[8px] sm:text-[10px] font-bold text-[#E5C378] block mb-0.5">
                       {card.category || 'مستكة وعود فاخر'}
                     </span>
-                    <h3 className="text-xs font-bold text-[#FAF5EE] group-hover:text-[#E5C378] transition-colors leading-snug line-clamp-2 font-tajawal min-h-[30px]">
+                    <h3 className="text-[11px] sm:text-xs md:text-sm font-bold text-[#FAF5EE] group-hover:text-[#E5C378] transition-colors leading-snug line-clamp-2 font-tajawal min-h-[28px] sm:min-h-[34px]">
                       {card.title}
                     </h3>
                   </div>
@@ -210,12 +211,12 @@ export const TikTokBanner: React.FC<TikTokBannerProps> = ({
                       href={card.url || tiktokUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-white hover:text-[#E5C378] font-bold transition-colors cursor-pointer bg-white/10 hover:bg-white/20 px-2 py-1 rounded"
+                      className="flex items-center gap-1 text-white hover:text-[#E5C378] font-bold transition-colors cursor-pointer bg-white/10 hover:bg-white/20 px-1.5 sm:px-2.5 py-1 rounded text-[9px] sm:text-[11px]"
                     >
                       <Play className="w-2.5 h-2.5 fill-current" />
                       <span>مشاهدة</span>
                     </a>
-                    <span className="dir-ltr text-[9px] font-bold text-[#E5C378]">@{tiktokHandle}</span>
+                    <span className="dir-ltr text-[8px] sm:text-[10px] font-bold text-[#E5C378] truncate max-w-[45%]">@{tiktokHandle}</span>
                   </div>
                 </div>
 

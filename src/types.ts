@@ -72,4 +72,15 @@ export interface TikTokVideoItem {
   likes?: string;
 }
 
+export interface WhatsAppReviewItem {
+  id: string;
+  customerName: string;
+  city: string;
+  productName: string;
+  imageUrl?: string;
+  textSnippet: string;
+  date?: string;
+}
+
+
 

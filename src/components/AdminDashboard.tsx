@@ -28,7 +28,8 @@ import {
   Video,
   ExternalLink
 } from 'lucide-react';
-import { Product, ProductVariant, StoreSettings, TikTokVideoItem } from '../types';
+import { Product, ProductVariant, StoreSettings, TikTokVideoItem, WhatsAppReviewItem } from '../types';
+import { INITIAL_WHATSAPP_REVIEWS } from '../data/products';
 import { Logo } from './Logo';
 
 interface AdminDashboardProps {
@@ -41,6 +42,8 @@ interface AdminDashboardProps {
   onResetDefaults: () => void;
   tiktokVideos: TikTokVideoItem[];
   onUpdateTikTokVideos: (newVideos: TikTokVideoItem[]) => void;
+  whatsappReviews: WhatsAppReviewItem[];
+  onUpdateWhatsAppReviews: (newReviews: WhatsAppReviewItem[]) => void;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
@@ -52,7 +55,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onUpdateSettings,
   onResetDefaults,
   tiktokVideos,
-  onUpdateTikTokVideos
+  onUpdateTikTokVideos,
+  whatsappReviews,
+  onUpdateWhatsAppReviews
 }) => {
   // Authentication PIN state (Strictly A0897 with no public hints)
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -63,7 +68,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   });
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'products' | 'tiktok' | 'logo' | 'settings'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'tiktok' | 'reviews' | 'logo' | 'settings'>('products');
 
   // Product Edit / Create state
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -72,6 +77,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // TikTok Video Edit state
   const [editingVideo, setEditingVideo] = useState<TikTokVideoItem | null>(null);
   const [isCreatingNewVideo, setIsCreatingNewVideo] = useState(false);
+
+  // WhatsApp Review Edit state
+  const [editingReview, setEditingReview] = useState<WhatsAppReviewItem | null>(null);
+  const [isCreatingNewReview, setIsCreatingNewReview] = useState(false);
+  const reviewImageInputRef = useRef<HTMLInputElement>(null);
 
   // Success Notice Toast
   const [notice, setNotice] = useState<string | null>(null);
@@ -309,6 +319,104 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     showNotice('تمت استعادة الشعار الأصلي المعتمد لكيان العود');
   };
 
+  // Canvas image compression helper to keep storage compact & ultra-fast
+  const compressImage = (file: File, maxWidth = 1000, quality = 0.85): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (e) => {
+        const img = new Image();
+        img.src = e.target?.result as string;
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(img.src);
+            return;
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = reject;
+      };
+      reader.onerror = reject;
+    });
+  };
+
+  // WhatsApp Review Actions
+  const handleSaveReview = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingReview) return;
+
+    if (isCreatingNewReview) {
+      onUpdateWhatsAppReviews([editingReview, ...whatsappReviews]);
+      showNotice(`تمت إضافة محادثة العميل "${editingReview.customerName}" بنجاح`);
+    } else {
+      onUpdateWhatsAppReviews(
+        whatsappReviews.map((r) => (r.id === editingReview.id ? editingReview : r))
+      );
+      showNotice(`تم تحديث محادثة العميل "${editingReview.customerName}" بنجاح`);
+    }
+
+    setEditingReview(null);
+    setIsCreatingNewReview(false);
+  };
+
+  const handleDeleteReview = (reviewId: string, name: string) => {
+    if (window.confirm(`هل أنت متأكد من حذف محادثة "${name}"؟`)) {
+      onUpdateWhatsAppReviews(whatsappReviews.filter((r) => r.id !== reviewId));
+      showNotice('تم حذف المحادثة بنجاح');
+    }
+  };
+
+  const handleCreateNewReview = () => {
+    const newRev: WhatsAppReviewItem = {
+      id: `wa-${Date.now()}`,
+      customerName: '',
+      city: 'جدة',
+      productName: 'مستكة بلورية بمسك الختام',
+      textSnippet: '',
+      date: 'اليوم، 10:00 م'
+    };
+    setEditingReview(newRev);
+    setIsCreatingNewReview(true);
+  };
+
+  const handleReviewImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && editingReview) {
+      if (file.size > 10 * 1024 * 1024) {
+        alert('حجم الصورة كبير جداً، يرجى اختيار صورة أقل من 10 ميجابايت.');
+        return;
+      }
+      try {
+        const compressed = await compressImage(file, 1000, 0.85);
+        setEditingReview({
+          ...editingReview,
+          imageUrl: compressed
+        });
+        showNotice('تم رفع سكرين شوت المحادثة بنجاح!');
+      } catch {
+        alert('حدث خطأ أثناء معالجة الصورة، يرجى المحاولة مرة أخرى.');
+      }
+    }
+  };
+
+  const handleResetWhatsAppReviews = () => {
+    if (window.confirm('هل تود استعادة محادثات الواتساب الافتراضية؟')) {
+      onUpdateWhatsAppReviews(INITIAL_WHATSAPP_REVIEWS);
+      showNotice('تمت استعادة محادثات الواتساب الافتراضية');
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -441,6 +549,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               >
                 <Play className="w-4 h-4 text-[#E5C378]" />
                 <span>فيديوهات تيك توك ({tiktokVideos.length})</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setActiveTab('reviews');
+                  setEditingProduct(null);
+                  setEditingVideo(null);
+                  setEditingReview(null);
+                }}
+                className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${
+                  activeTab === 'reviews'
+                    ? 'bg-[#581420] text-white shadow-xs'
+                    : 'text-[#554044] hover:bg-[#EAE0D3]'
+                }`}
+              >
+                <MessageCircle className="w-4 h-4 text-[#25D366]" />
+                <span>محادثات الواتساب ({whatsappReviews.length})</span>
               </button>
 
               <button
@@ -1047,11 +1172,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             required
                             placeholder="مثال: https://www.tiktok.com/@kayan_alood/video/7345678901234567890"
                             value={editingVideo.url}
-                            onChange={(e) => setEditingVideo({ ...editingVideo, url: e.target.value })}
+                            onChange={(e) => {
+                              const inputVal = e.target.value;
+                              const match = inputVal.match(/\/video\/(\d+)/);
+                              setEditingVideo({
+                                ...editingVideo,
+                                url: inputVal,
+                                videoId: match ? match[1] : undefined
+                              });
+                            }}
                             className="w-full text-xs p-2.5 rounded-lg border border-[#E8DFD3] bg-[#FAF7F2] font-mono dir-ltr text-left focus:outline-none focus:border-[#581420]"
                           />
+                          {editingVideo.videoId && (
+                            <div className="mt-1.5 p-2 bg-[#2D161F] text-[#FAF5EE] rounded border border-[#E5C378]/30 flex items-center justify-between text-[11px]">
+                              <span className="text-[#E5C378] font-bold">✓ تم ربط مشغل تيك توك الفردي بنجاح</span>
+                              <span className="font-mono text-[10px] text-neutral-300">ID: {editingVideo.videoId}</span>
+                            </div>
+                          )}
                           <span className="text-[10px] text-[#8A2535] mt-1 block">
-                            * عند وضع رابط المقطع المباشر من تيك توك، سيتم تحميل شاشة الفيديو مباشرة في المتجر وعند الضغط يتم التحويل إلى تيك توك.
+                            * سيتم تشغيل هذا المقطع فقط بمفرده بشكل نقي بدون أي فيديوهات أخرى أو إعلانات تحته.
                           </span>
                         </div>
 
@@ -1229,6 +1368,362 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* TAB: WHATSAPP REVIEWS & SCREENSHOTS */}
+              {activeTab === 'reviews' && (
+                <div className="space-y-6">
+                  {/* Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#E8DFD3]">
+                    <div>
+                      <h3 className="text-lg font-bold text-[#350A11] flex items-center gap-2">
+                        <span>محادثات وتقييمات العملاء (واتساب)</span>
+                        <span className="text-xs bg-[#25D366]/20 text-[#075E54] px-2 py-0.5 rounded-full font-bold">
+                          {whatsappReviews.length} محادثات
+                        </span>
+                      </h3>
+                      <p className="text-xs text-[#70555A] mt-0.5">
+                        ارفع صور سكرين شوت حقيقية لرسائل ومحادثات العملاء على واتساب التي يمدحون فيها المنتجات والتوصيل، أو عدّل الأسماء والنصوص.
+                      </p>
+                    </div>
+
+                    {!editingReview && (
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          onClick={handleResetWhatsAppReviews}
+                          className="flex items-center gap-1 px-3 py-2 text-xs font-semibold text-[#8A2535] bg-white border border-[#E8DFD3] hover:bg-[#FAF5EE] rounded-lg transition-colors cursor-pointer"
+                          title="استعادة المحادثات الافتراضية"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">استعادة الافتراضي</span>
+                        </button>
+
+                        <button
+                          onClick={handleCreateNewReview}
+                          className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-[#581420] hover:bg-[#430D17] rounded-lg shadow-sm transition-all cursor-pointer"
+                        >
+                          <Plus className="w-4 h-4" />
+                          <span>إضافة محادثة عميل جديدة</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* EDIT / CREATE FORM */}
+                  {editingReview ? (
+                    <form onSubmit={handleSaveReview} className="bg-white rounded-2xl border border-[#E8DFD3] p-4 sm:p-6 shadow-sm space-y-6 animate-fade-in">
+                      <div className="flex items-center justify-between border-b border-[#F0E8DE] pb-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-[#25D366]/15 flex items-center justify-center text-[#075E54]">
+                            <MessageCircle className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-bold text-[#350A11]">
+                              {isCreatingNewReview ? 'إضافة محادثة عميل جديدة' : `تعديل محادثة: ${editingReview.customerName || 'عميل'}`}
+                            </h4>
+                            <p className="text-[11px] text-[#70555A]">
+                              ارفع صورة سكرين شوت من واتساب أو اكتب تفاصيل رسالة المديح
+                            </p>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingReview(null);
+                            setIsCreatingNewReview(false);
+                          }}
+                          className="p-1 text-neutral-400 hover:text-neutral-700 rounded-lg hover:bg-neutral-100"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+
+                      {/* SECTION 1: SCREENSHOT UPLOAD */}
+                      <div className="bg-[#FAF7F2] rounded-xl border border-[#E8DFD3] p-4 sm:p-5 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-bold text-[#350A11] flex items-center gap-2">
+                            <ImageIcon className="w-4 h-4 text-[#8A2535]" />
+                            <span>صورة سكرين شوت محادثة الواتساب (لإبراز المديح الحقيقي)</span>
+                          </label>
+                          <span className="text-[10px] text-[#70555A]">
+                            تظهر صورة المحادثة مباشرة للعملاء مع إمكانية التكبير
+                          </span>
+                        </div>
+
+                        <input
+                          ref={reviewImageInputRef}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleReviewImageUpload}
+                        />
+
+                        {editingReview.imageUrl ? (
+                          <div className="flex flex-col sm:flex-row items-center gap-4 bg-white p-4 rounded-xl border border-[#E0D8CC]">
+                            {/* Preview */}
+                            <div className="relative w-32 h-44 sm:w-36 sm:h-48 rounded-lg overflow-hidden border border-[#D1D7DB] shadow-md bg-neutral-100 shrink-0">
+                              <img
+                                src={editingReview.imageUrl}
+                                alt={editingReview.customerName}
+                                className="w-full h-full object-cover"
+                              />
+                              <div className="absolute top-1 right-1 bg-[#25D366] text-white text-[9px] px-1.5 py-0.5 rounded font-bold shadow-xs">
+                                تم الرفع ✓
+                              </div>
+                            </div>
+
+                            {/* Controls */}
+                            <div className="flex-1 space-y-2 text-center sm:text-right w-full">
+                              <span className="text-xs font-bold text-[#350A11] block">
+                                تم حفظ صورة المحادثة بنجاح
+                              </span>
+                              <p className="text-[11px] text-[#70555A] leading-relaxed">
+                                ستظهر هذه الصورة في كارت التقييمات في المتجر، وعند النقر عليها سيتم تكبيرها بدقة عالية للزوار كإثبات موثق.
+                              </p>
+
+                              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-2">
+                                <button
+                                  type="button"
+                                  onClick={() => reviewImageInputRef.current?.click()}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-[#581420] bg-[#FAF5EE] hover:bg-[#581420] hover:text-white rounded-lg border border-[#E8DFD3] transition-colors cursor-pointer"
+                                >
+                                  <Upload className="w-3.5 h-3.5" />
+                                  <span>تغيير الصورة من الجوال/الكمبيوتر</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingReview({ ...editingReview, imageUrl: undefined })}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                  <span>إزالة الصورة والاعتماد على النص</span>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            <div
+                              onClick={() => reviewImageInputRef.current?.click()}
+                              className="border-2 border-dashed border-[#C59B27]/50 hover:border-[#581420] bg-white hover:bg-[#FAF5EE] rounded-xl p-6 sm:p-8 text-center cursor-pointer transition-all group flex flex-col items-center justify-center space-y-2"
+                            >
+                              <div className="w-12 h-12 rounded-full bg-[#25D366]/10 text-[#075E54] flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <Upload className="w-6 h-6 text-[#25D366]" />
+                              </div>
+                              <div className="space-y-1">
+                                <span className="text-xs sm:text-sm font-bold text-[#350A11] block">
+                                  انقر هنا لرفع سكرين شوت محادثة الواتساب من الجوال أو الكمبيوتر
+                                </span>
+                                <span className="text-[11px] text-[#70555A] block">
+                                  اختر صورة المحادثة (PNG, JPG) وسيتم ضغطها وتجهيزها تلقائياً للمتجر
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Direct URL input fallback */}
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="text"
+                                placeholder="أو الصق رابط صورة سكرين شوت مباشر (URL) مثل: https://..."
+                                value={editingReview.imageUrl || ''}
+                                onChange={(e) => setEditingReview({ ...editingReview, imageUrl: e.target.value })}
+                                className="flex-1 text-xs p-2.5 rounded-lg border border-[#E8DFD3] bg-white dir-ltr text-left"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* SECTION 2: CUSTOMER & PRODUCT DETAILS */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-[#554044] mb-1">
+                            اسم العميل / العميلة: <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="مثال: أم ريان الغامدي"
+                            value={editingReview.customerName}
+                            onChange={(e) => setEditingReview({ ...editingReview, customerName: e.target.value })}
+                            className="w-full text-xs p-2.5 rounded-lg border border-[#E8DFD3] bg-white focus:outline-none focus:border-[#581420]"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-[#554044] mb-1">
+                            المدينة والحي: <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="مثال: جدة - حي الشاطئ أو الرياض"
+                            value={editingReview.city}
+                            onChange={(e) => setEditingReview({ ...editingReview, city: e.target.value })}
+                            className="w-full text-xs p-2.5 rounded-lg border border-[#E8DFD3] bg-white focus:outline-none focus:border-[#581420]"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-[#554044] mb-1">
+                            اسم المنتج أو الطلب: <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="مثال: مستكة بلورية بمسك الختام"
+                            value={editingReview.productName}
+                            onChange={(e) => setEditingReview({ ...editingReview, productName: e.target.value })}
+                            className="w-full text-xs p-2.5 rounded-lg border border-[#E8DFD3] bg-white focus:outline-none focus:border-[#581420]"
+                          />
+                        </div>
+                      </div>
+
+                      {/* SECTION 3: TIME / DATE */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-[#554044] mb-1">
+                            تاريخ أو توقيت المحادثة:
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="مثال: اليوم، 10:24 م أو أمس"
+                            value={editingReview.date || ''}
+                            onChange={(e) => setEditingReview({ ...editingReview, date: e.target.value })}
+                            className="w-full text-xs p-2.5 rounded-lg border border-[#E8DFD3] bg-white focus:outline-none focus:border-[#581420]"
+                          />
+                        </div>
+                      </div>
+
+                      {/* SECTION 4: TEXT SNIPPET */}
+                      <div>
+                        <label className="block text-xs font-bold text-[#554044] mb-1">
+                          نص رسالة ومديح العميل: <span className="text-red-500">*</span>
+                        </label>
+                        <textarea
+                          required
+                          rows={4}
+                          placeholder="اكتب ما قاله العميل في المحادثة..."
+                          value={editingReview.textSnippet}
+                          onChange={(e) => setEditingReview({ ...editingReview, textSnippet: e.target.value })}
+                          className="w-full text-xs p-3 rounded-lg border border-[#E8DFD3] bg-white focus:outline-none focus:border-[#581420] leading-relaxed font-tajawal"
+                        />
+                        <p className="text-[10px] text-[#70555A] mt-1">
+                          يظهر هذا النص في بطاقة المحادثة أو كشرح توضيحي للمحادثة.
+                        </p>
+                      </div>
+
+                      {/* BUTTONS */}
+                      <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#F0E8DE]">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingReview(null);
+                            setIsCreatingNewReview(false);
+                          }}
+                          className="px-4 py-2 text-xs font-semibold text-[#70555A] hover:bg-neutral-100 rounded-lg transition-colors cursor-pointer"
+                        >
+                          إلغاء
+                        </button>
+
+                        <button
+                          type="submit"
+                          className="flex items-center gap-1.5 px-6 py-2.5 text-xs font-bold text-white bg-[#581420] hover:bg-[#430D17] rounded-lg shadow-md transition-all cursor-pointer"
+                        >
+                          <Save className="w-4 h-4" />
+                          <span>حفظ محادثة العميل</span>
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    /* LIST OF REVIEWS */
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {whatsappReviews.map((rev) => (
+                        <div
+                          key={rev.id}
+                          className="bg-white rounded-xl border border-[#E8DFD3] p-4 flex flex-col justify-between shadow-xs hover:shadow-md transition-all space-y-3"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-9 h-9 rounded-full bg-[#128C7E] text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-inner">
+                                {rev.customerName.charAt(0) || 'ع'}
+                              </div>
+                              <div>
+                                <h4 className="text-xs font-bold text-[#350A11] flex items-center gap-1.5">
+                                  <span>{rev.customerName}</span>
+                                  <CheckCircle className="w-3.5 h-3.5 text-[#25D366]" />
+                                </h4>
+                                <span className="text-[10px] text-[#8A2535]">
+                                  {rev.city} · {rev.productName}
+                                </span>
+                              </div>
+                            </div>
+
+                            {rev.imageUrl ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                <ImageIcon className="w-3 h-3" />
+                                <span>سكرين شوت مرفق</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#075E54] bg-[#25D366]/10 px-2 py-0.5 rounded border border-[#25D366]/30">
+                                <MessageCircle className="w-3 h-3" />
+                                <span>نص محادثة</span>
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Preview image if present */}
+                          {rev.imageUrl && (
+                            <div className="relative h-32 w-full rounded-lg overflow-hidden border border-[#D1D7DB] bg-neutral-50 flex items-center justify-center">
+                              <img
+                                src={rev.imageUrl}
+                                alt={rev.customerName}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          )}
+
+                          {/* Snippet */}
+                          <div className="bg-[#FAF7F2] p-2.5 rounded-lg border border-[#F0E8DE] text-[11px] text-[#4A373A] leading-relaxed line-clamp-3">
+                            «{rev.textSnippet}»
+                          </div>
+
+                          {/* Footer and Actions */}
+                          <div className="flex items-center justify-between pt-2 border-t border-[#F0E8DE] text-xs">
+                            <span className="text-[10px] text-neutral-400 font-mono">
+                              {rev.date || 'اليوم'}
+                            </span>
+
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingReview(rev);
+                                  setIsCreatingNewReview(false);
+                                }}
+                                className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-[#581420] bg-[#FAF5EE] hover:bg-[#581420] hover:text-white rounded-md transition-colors border border-[#E8DFD3] cursor-pointer"
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
+                                <span>تعديل / رفع صورة</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteReview(rev.id, rev.customerName)}
+                                className="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
+                                title="حذف المحادثة"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
